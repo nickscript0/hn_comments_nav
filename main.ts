@@ -27,29 +27,34 @@ class Nav {
     }
 
     public next() {
-        if (this.position < this.all_comments.length - 1) {
-            this.position++;
-            this.highlight(this.all_comments[this.position], this.all_comments[this.position - 1]);
-        }
+        this._changePosition((this.position < this.all_comments.length - 1), 1);
 
     }
 
     public previous() {
-        if (this.position > 0) {
-            this.position--;
-            this.highlight(this.all_comments[this.position], this.all_comments[this.position + 1]);
-        }
+        this._changePosition((this.position > 0), -1);
     }
 
     public get navPosition() {
         return this.position;
     }
 
-    private highlight(current_element: Element, last_element: Element) {
+    private _changePosition(condition: boolean, incrementor: number) {
+        if (condition) {
+            this.position += incrementor;
+            this._highlight(
+                this.all_comments[this.position],
+                this.all_comments[this.position - incrementor]
+            );
+        }
+    }
+
+    private _highlight(current_element: Element, last_element: Element) {
         const current = <HTMLElement>current_element;
         const last = <HTMLElement>last_element;
         current.style.background = "aliceblue";
         last.style.background = "";
+        current.scrollIntoView(true);
     }
 }
 
