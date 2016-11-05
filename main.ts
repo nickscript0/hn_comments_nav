@@ -18,12 +18,13 @@ interface Nav {
 }
 
 function handle_key(nav: Nav) {
-    return (e: KeyboardEvent) => {
-        if (e.key === 'j') nav.next();
-        if (e.key === 'k') nav.previous();
-        if (e.key === 'J') nav.nextRoot();
-        if (e.key === 'K') nav.previousRoot();
+    const key_map = {
+        'j': nav.next.bind(nav),
+        'k': nav.previous.bind(nav),
+        'J': nav.nextRoot.bind(nav),
+        'K': nav.previousRoot.bind(nav)
     };
+    return (e: KeyboardEvent) => key_map[e.key]();
 }
 
 /**
