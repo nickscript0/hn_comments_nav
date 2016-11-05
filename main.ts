@@ -6,12 +6,19 @@
  */
 
 function main() {
-    const nav = new Nav();
+    const nav = new BrowserNav();
     document.onkeypress = handle_key(nav);
 }
 
+interface Nav {
+    next();
+    previous();
+    nextRoot();
+    previousRoot();
+}
+
 function handle_key(nav: Nav) {
-    return function (e: KeyboardEvent) {
+    return (e: KeyboardEvent) => {
         if (e.key === 'j') nav.next();
         if (e.key === 'k') nav.previous();
         if (e.key === 'J') nav.nextRoot();
@@ -22,7 +29,7 @@ function handle_key(nav: Nav) {
 /**
  * Nav
  */
-class Nav {
+class BrowserNav implements Nav {
     private all_comments: HTMLCollectionOf<Element>;
     private position: number;
 
@@ -35,7 +42,6 @@ class Nav {
 
     public next() {
         this._changePosition((this.position < this.all_comments.length - 1), 1);
-
     }
 
     public previous() {
@@ -57,10 +63,7 @@ class Nav {
     private _changeRoot(incrementor: number, exit_condition_func: Function) {
         const is_child = i => this.all_comments[i].getElementsByTagName('table')[0].className.includes('parent-');
         let i;
-        for (i = this.position + incrementor;
-            exit_condition_func(i) && is_child(i);
-            i = i + incrementor) {
-        }
+        for (i = this.position + incrementor; exit_condition_func(i) && is_child(i); i += incrementor);
         console.log(`nextRoot ${i}, incrementor ${i - this.position}`);
         this._changePosition(exit_condition_func(i), i - this.position);
     }
