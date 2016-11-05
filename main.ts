@@ -1,3 +1,10 @@
+/**
+ * TODOs:
+ *  - Add key when held down overlays parent comment, so you can see the context of the current comment you're reading
+ *  - Allow mouse click focus to determine where to start, instead of always starting at comment 0
+ *  - Fix: should disable shortcut keys when user is inputting text in a textbox
+ */
+
 function main() {
     const nav = new Nav();
     document.onkeypress = handle_key(nav);
