@@ -5,11 +5,10 @@ function main() {
 
 function handle_key(nav: Nav) {
     return function (e: KeyboardEvent) {
-        // console.log(`onkeypress: e.code=${e.code}, e.key=${e.key}`);
         if (e.key === 'j') nav.next();
         if (e.key === 'k') nav.previous();
         if (e.key === 'J') nav.nextRoot();
-        // console.log(`position is ${nav.navPosition}`);
+        if (e.key === 'K') nav.previousRoot();
     };
 }
 
@@ -22,7 +21,7 @@ class Nav {
 
     constructor() {
         this.all_comments = document.getElementsByClassName('athing comtr ');
-        console.log('all_comments is size ' + this.all_comments.length);
+        console.log('all_comments size ' + this.all_comments.length);
 
         this.position = 0;
     }
@@ -37,22 +36,26 @@ class Nav {
     }
 
     public nextRoot() {
-        this._changeRoot(1);
+        this._changeRoot(1, i => i < this.all_comments.length);
+    }
+
+    public previousRoot() {
+        this._changeRoot(-1, i => i >= 0);
     }
 
     public get navPosition() {
         return this.position;
     }
 
-    private _changeRoot(incrementor: number) {
+    private _changeRoot(incrementor: number, exit_condition_func: Function) {
         const is_child = i => this.all_comments[i].getElementsByTagName('table')[0].className.includes('parent-');
         let i;
         for (i = this.position + incrementor;
-            i < this.all_comments.length && is_child(i);
+            exit_condition_func(i) && is_child(i);
             i = i + incrementor) {
         }
         console.log(`nextRoot ${i}, incrementor ${i - this.position}`);
-        this._changePosition((i < this.all_comments.length), i - this.position);
+        this._changePosition(exit_condition_func(i), i - this.position);
     }
 
     private _changePosition(condition: boolean, incrementor: number) {
