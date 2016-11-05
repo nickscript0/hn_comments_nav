@@ -5,10 +5,11 @@ function main() {
 
 function handle_key(nav: Nav) {
     return function (e: KeyboardEvent) {
-        console.log(`onkeypress: e.code=${e.code}, e.key=${e.key}`);
+        // console.log(`onkeypress: e.code=${e.code}, e.key=${e.key}`);
         if (e.key === 'j') nav.next();
         if (e.key === 'k') nav.previous();
-        console.log(`position is ${nav.navPosition}`);
+        if (e.key === 'J') nav.nextRoot();
+        // console.log(`position is ${nav.navPosition}`);
     };
 }
 
@@ -35,11 +36,27 @@ class Nav {
         this._changePosition((this.position > 0), -1);
     }
 
+    public nextRoot() {
+        this._changeRoot(1);
+    }
+
     public get navPosition() {
         return this.position;
     }
 
+    private _changeRoot(incrementor: number) {
+        const is_child = i => this.all_comments[i].getElementsByTagName('table')[0].className.includes('parent-');
+        let i;
+        for (i = this.position + incrementor;
+            i < this.all_comments.length && is_child(i);
+            i = i + incrementor) {
+        }
+        console.log(`nextRoot ${i}, incrementor ${i - this.position}`);
+        this._changePosition((i < this.all_comments.length), i - this.position);
+    }
+
     private _changePosition(condition: boolean, incrementor: number) {
+        let orig_pos = this.position;
         if (condition) {
             this.position += incrementor;
             this._highlight(
@@ -47,6 +64,7 @@ class Nav {
                 this.all_comments[this.position - incrementor]
             );
         }
+        console.log(`changePosition from ${orig_pos} to ${this.position}`);
     }
 
     private _highlight(current_element: Element, last_element: Element) {
