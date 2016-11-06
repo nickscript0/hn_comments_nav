@@ -63,32 +63,23 @@ class BrowserNav implements Nav {
 
     private _changeRoot(incrementor: number, exit_condition_func: Function) {
         const is_child = i => this.all_comments[i].getElementsByTagName('table')[0].className.includes('parent-');
-        let i;
+        let i: number;
         for (i = this.position + incrementor; exit_condition_func(i) && is_child(i); i += incrementor);
         console.log(`nextRoot ${i}, incrementor ${i - this.position}`);
         this._changePosition(exit_condition_func(i), i - this.position);
     }
 
     private _changePosition(condition: boolean, incrementor: number) {
-        const orig_pos = this.position;
-        // Case: no previous position exists
-        if (this.position === null) {
-            this.position = this._findNearestTopCommentIndex();
+        const last_position = this.position;
+        if (condition) {
+            this.position = this.position !== null ? this.position + incrementor : this._findNearestTopCommentIndex();
+            const last_comment = last_position !== null ? this.all_comments[last_position] : null;
             this._highlight(
                 this.all_comments[this.position],
-                null);
+                last_comment
+            );
         }
-        // Case: a previous position exists
-        else {
-            if (condition) {
-                this.position += incrementor;
-                this._highlight(
-                    this.all_comments[this.position],
-                    this.all_comments[this.position - incrementor]
-                );
-            }
-        }
-        console.log(`changePosition from ${orig_pos} to ${this.position}`);
+        console.log(`changePosition from ${last_position} to ${this.position}`);
     }
 
     private _highlight(current_element: Element, last_element: Element | null) {
