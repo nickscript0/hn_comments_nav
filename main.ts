@@ -1,7 +1,7 @@
 /**
  * TODOs:
  *  - Add key when held down overlays parent comment, so you can see the context of the current comment you're reading
- *  - Allow mouse click focus to determine where to start, instead of always starting at comment 0
+ *  - Instead of always starting at comment 0, jump to the element nearest the top of the viewport
  *  - Fix: should disable shortcut keys when user is inputting text in a textbox
  */
 
@@ -32,13 +32,13 @@ function handle_key(nav: Nav) {
  */
 class BrowserNav implements Nav {
     private all_comments: HTMLCollectionOf<Element>;
-    private position: number;
+    private position: number | null;
 
     constructor() {
         this.all_comments = document.getElementsByClassName('athing comtr ');
         console.log('all_comments size ' + this.all_comments.length);
 
-        this.position = 0;
+        this.position = null;
     }
 
     public next() {
@@ -70,23 +70,48 @@ class BrowserNav implements Nav {
     }
 
     private _changePosition(condition: boolean, incrementor: number) {
-        let orig_pos = this.position;
-        if (condition) {
-            this.position += incrementor;
+        const orig_pos = this.position;
+        // Case: no previous position exists
+        if (this.position === null) {
+            this.position = this._findNearestTopCommentIndex();
             this._highlight(
                 this.all_comments[this.position],
-                this.all_comments[this.position - incrementor]
-            );
+                null);
+        }
+        // Case: a previous position exists
+        else {
+            if (condition) {
+                this.position += incrementor;
+                this._highlight(
+                    this.all_comments[this.position],
+                    this.all_comments[this.position - incrementor]
+                );
+            }
         }
         console.log(`changePosition from ${orig_pos} to ${this.position}`);
     }
 
-    private _highlight(current_element: Element, last_element: Element) {
+    private _highlight(current_element: Element, last_element: Element | null) {
         const current = <HTMLElement>current_element;
-        const last = <HTMLElement>last_element;
         current.style.background = "aliceblue";
-        last.style.background = "";
+
+        if (last_element !== null) {
+            const last = <HTMLElement>last_element;
+            last.style.background = "";
+        }
         current.scrollIntoView(true);
+    }
+
+    private _findNearestTopCommentIndex(): number {
+        // find the distance from top of viewport of all comments
+        const tops = Array.from(this.all_comments).map(x => x.getBoundingClientRect().top);
+
+        // find first non-negative top index (elements above viewport are negative)
+        let starting_index = 0;
+        for (; starting_index < tops.length; starting_index++) {
+            if (tops[starting_index] >= 0) break;
+        }
+        return starting_index;
     }
 }
 
