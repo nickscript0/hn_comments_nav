@@ -49,7 +49,7 @@ class BrowserNav implements Nav {
             this._highlight(this.all_comments[new_position]);
         }
         // Case 2: will not go outside bounds, change to new position
-        else if (boundary_func(current_position)) {
+        else if (boundary_func(current_position + incrementor)) {
             new_position = current_position + incrementor;
             this._unHighlight(this.all_comments[current_position]);
             this._highlight(this.all_comments[new_position]);
@@ -64,12 +64,12 @@ class BrowserNav implements Nav {
 
     public next() {
         this.position = this._nextPosition(this.position, 1,
-            p => p < this.all_comments.length - 1);
+            p => p < this.all_comments.length);
     }
 
     public previous() {
         this.position = this._nextPosition(this.position, -1,
-            p => p > 0);
+            p => p >= 0);
     }
 
     public nextRoot() {
