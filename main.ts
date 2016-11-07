@@ -73,16 +73,14 @@ class BrowserNav implements Nav {
     }
 
     public nextRoot() {
-        const boundary_func = i => i < this.all_comments.length - 1;
+        const boundary_func = i => i < this.all_comments.length;
         const incrementor = (this.position !== null) ? this._findNextRoot(this.position, 1, boundary_func) : 0;
-        console.log('incrementor ' + incrementor);
         this.position = this._nextPosition(this.position, incrementor, boundary_func);
     }
 
     public previousRoot() {
-        const boundary_func = i => i > 0;
+        const boundary_func = i => i >= 0;
         const incrementor = (this.position !== null) ? this._findNextRoot(this.position, -1, boundary_func) : 0;
-        console.log('incrementor ' + incrementor);
         this.position = this._nextPosition(this.position, incrementor, boundary_func);
     }
 
@@ -92,10 +90,11 @@ class BrowserNav implements Nav {
 
     private _findNextRoot(current_position: number, incrementor: number, exit_condition_func: Function) {
         const is_child = i => this.all_comments[i].getElementsByTagName('table')[0].className.includes('parent-');
-        let i: number;
-
-        for (i = current_position + incrementor; exit_condition_func(i) && is_child(i); i += incrementor);
-        return i - current_position;
+        let i: number = current_position + incrementor;
+        while (exit_condition_func(i) && is_child(i)) {
+            i += incrementor;
+        }
+        return exit_condition_func(i) ? i - current_position : 0;
     }
 
     private _highlight(element: Element) {
