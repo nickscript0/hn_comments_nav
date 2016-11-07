@@ -41,7 +41,7 @@ class BrowserNav implements Nav {
         this.position = null;
     }
 
-    private _nextPosition(current_position: number | null, incrementor: number, condition_func: Function) {
+    private _nextPosition(current_position: number | null, incrementor: number, boundary_func: Function) {
         let new_position: number;
         // Case 1: no comment is highlighted, go to nearest
         if (current_position === null) {
@@ -49,7 +49,7 @@ class BrowserNav implements Nav {
             this._highlight(this.all_comments[new_position]);
         }
         // Case 2: will not go outside bounds, change to new position
-        else if (condition_func(current_position)) {
+        else if (boundary_func(current_position)) {
             new_position = current_position + incrementor;
             this._unHighlight(this.all_comments[current_position]);
             this._highlight(this.all_comments[new_position]);
@@ -88,13 +88,13 @@ class BrowserNav implements Nav {
         return this.position;
     }
 
-    private _findNextRoot(current_position: number, incrementor: number, exit_condition_func: Function) {
+    private _findNextRoot(current_position: number, incrementor: number, boundary_func: Function) {
         const is_child = i => this.all_comments[i].getElementsByTagName('table')[0].className.includes('parent-');
         let i: number = current_position + incrementor;
-        while (exit_condition_func(i) && is_child(i)) {
+        while (boundary_func(i) && is_child(i)) {
             i += incrementor;
         }
-        return exit_condition_func(i) ? i - current_position : 0;
+        return boundary_func(i) ? i - current_position : 0;
     }
 
     private _highlight(element: Element) {
