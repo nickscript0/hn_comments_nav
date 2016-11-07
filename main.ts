@@ -41,56 +41,72 @@ class BrowserNav implements Nav {
         this.position = null;
     }
 
+    private _nextPosition(current_position: number | null, incrementor: number, condition_func: Function) {
+        let new_position: number;
+        // Case 1: no comment is highlighted, go to nearest
+        if (current_position === null) {
+            new_position = this._findNearestTopCommentIndex();
+            this._highlight(this.all_comments[new_position]);
+        }
+        // Case 2: will not go outside bounds, change to new position
+        else if (condition_func(current_position)) {
+            new_position = current_position + incrementor;
+            this._unHighlight(this.all_comments[current_position]);
+            this._highlight(this.all_comments[new_position]);
+        }
+        // Case 3: will go outside bounds, remain in current
+        else {
+            new_position = current_position;
+        }
+        console.log(`changePosition from ${current_position} to ${new_position}`);
+        return new_position;
+    }
+
     public next() {
-        this._changePosition((this.position < this.all_comments.length - 1), 1);
+        this.position = this._nextPosition(this.position, 1,
+            p => p < this.all_comments.length - 1);
     }
 
     public previous() {
-        this._changePosition((this.position > 0), -1);
+        this.position = this._nextPosition(this.position, -1,
+            p => p > 0);
     }
 
     public nextRoot() {
-        this._changeRoot(1, i => i < this.all_comments.length);
+        const boundary_func = i => i < this.all_comments.length - 1;
+        const incrementor = (this.position !== null) ? this._findNextRoot(this.position, 1, boundary_func) : 0;
+        console.log('incrementor ' + incrementor);
+        this.position = this._nextPosition(this.position, incrementor, boundary_func);
     }
 
     public previousRoot() {
-        this._changeRoot(-1, i => i >= 0);
+        const boundary_func = i => i > 0;
+        const incrementor = (this.position !== null) ? this._findNextRoot(this.position, -1, boundary_func) : 0;
+        console.log('incrementor ' + incrementor);
+        this.position = this._nextPosition(this.position, incrementor, boundary_func);
     }
 
     public get navPosition() {
         return this.position;
     }
 
-    private _changeRoot(incrementor: number, exit_condition_func: Function) {
+    private _findNextRoot(current_position: number, incrementor: number, exit_condition_func: Function) {
         const is_child = i => this.all_comments[i].getElementsByTagName('table')[0].className.includes('parent-');
         let i: number;
-        for (i = this.position + incrementor; exit_condition_func(i) && is_child(i); i += incrementor);
-        console.log(`nextRoot ${i}, incrementor ${i - this.position}`);
-        this._changePosition(exit_condition_func(i), i - this.position);
+
+        for (i = current_position + incrementor; exit_condition_func(i) && is_child(i); i += incrementor);
+        return i - current_position;
     }
 
-    private _changePosition(condition: boolean, incrementor: number) {
-        const last_position = this.position;
-        if (condition) {
-            this.position = this.position !== null ? this.position + incrementor : this._findNearestTopCommentIndex();
-            const last_comment = last_position !== null ? this.all_comments[last_position] : null;
-            this._highlight(
-                this.all_comments[this.position],
-                last_comment
-            );
-        }
-        console.log(`changePosition from ${last_position} to ${this.position}`);
-    }
-
-    private _highlight(current_element: Element, last_element: Element | null) {
-        const current = <HTMLElement>current_element;
+    private _highlight(element: Element) {
+        const current = <HTMLElement>element;
         current.style.background = "aliceblue";
-
-        if (last_element !== null) {
-            const last = <HTMLElement>last_element;
-            last.style.background = "";
-        }
         current.scrollIntoView(true);
+    }
+
+    private _unHighlight(element: Element) {
+        const last = <HTMLElement>element;
+        last.style.background = "";
     }
 
     private _findNearestTopCommentIndex(): number {
