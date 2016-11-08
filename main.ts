@@ -1,7 +1,8 @@
 /**
  * TODOs:
+ *  - J/K should jump to next same level comment instead of next root (as RES does),
+ *    then add N or something for jump to next root
  *  - Add key when held down overlays parent comment, so you can see the context of the current comment you're reading
- *  - Allow mouse click focus to determine where to start, instead of always starting at comment 0
  *  - Fix: should disable shortcut keys when user is inputting text in a textbox
  */
 
@@ -32,62 +33,96 @@ function handle_key(nav: Nav) {
  */
 class BrowserNav implements Nav {
     private all_comments: HTMLCollectionOf<Element>;
-    private position: number;
+    private position: number | null;
 
     constructor() {
         this.all_comments = document.getElementsByClassName('athing comtr ');
         console.log('all_comments size ' + this.all_comments.length);
 
-        this.position = 0;
+        this.position = null;
     }
 
     public next() {
-        this._changePosition((this.position < this.all_comments.length - 1), 1);
+        this.position = _nextPosition(this.position, 1,
+            p => p < this.all_comments.length, this.all_comments);
     }
 
     public previous() {
-        this._changePosition((this.position > 0), -1);
+        this.position = _nextPosition(this.position, -1,
+            p => p >= 0, this.all_comments);
     }
 
     public nextRoot() {
-        this._changeRoot(1, i => i < this.all_comments.length);
+        const boundary_func = i => i < this.all_comments.length;
+        const incrementor = (this.position !== null) ? _findNextRoot(this.position, 1, boundary_func, this.all_comments) : 0;
+        this.position = _nextPosition(this.position, incrementor, boundary_func, this.all_comments);
     }
 
     public previousRoot() {
-        this._changeRoot(-1, i => i >= 0);
+        const boundary_func = i => i >= 0;
+        const incrementor = (this.position !== null) ? _findNextRoot(this.position, -1, boundary_func, this.all_comments) : 0;
+        this.position = _nextPosition(this.position, incrementor, boundary_func, this.all_comments);
     }
 
     public get navPosition() {
         return this.position;
     }
-
-    private _changeRoot(incrementor: number, exit_condition_func: Function) {
-        const is_child = i => this.all_comments[i].getElementsByTagName('table')[0].className.includes('parent-');
-        let i;
-        for (i = this.position + incrementor; exit_condition_func(i) && is_child(i); i += incrementor);
-        console.log(`nextRoot ${i}, incrementor ${i - this.position}`);
-        this._changePosition(exit_condition_func(i), i - this.position);
-    }
-
-    private _changePosition(condition: boolean, incrementor: number) {
-        let orig_pos = this.position;
-        if (condition) {
-            this.position += incrementor;
-            this._highlight(
-                this.all_comments[this.position],
-                this.all_comments[this.position - incrementor]
-            );
-        }
-        console.log(`changePosition from ${orig_pos} to ${this.position}`);
-    }
-
-    private _highlight(current_element: Element, last_element: Element) {
-        const current = <HTMLElement>current_element;
-        const last = <HTMLElement>last_element;
-        current.style.background = "aliceblue";
-        last.style.background = "";
-        current.scrollIntoView(true);
-    }
 }
+
+function _nextPosition(current_position: number | null, incrementor: number, boundary_func: Function,
+    all_comments: HTMLCollectionOf<Element>) {
+    let new_position: number;
+    // Case 1: no comment is highlighted, go to nearest
+    if (current_position === null) {
+        new_position = _findNearestTopCommentIndex(all_comments);
+        _highlight(all_comments[new_position]);
+    }
+    // Case 2: will not go outside bounds, change to new position
+    else if (boundary_func(current_position + incrementor)) {
+        new_position = current_position + incrementor;
+        _unHighlight(all_comments[current_position]);
+        _highlight(all_comments[new_position]);
+    }
+    // Case 3: will go outside bounds, remain in current
+    else {
+        new_position = current_position;
+    }
+    console.log(`changePosition from ${current_position} to ${new_position}`);
+    return new_position;
+}
+
+function _findNextRoot(current_position: number, incrementor: number, boundary_func: Function,
+    all_comments: HTMLCollectionOf<Element>) {
+    const is_child = i => all_comments[i].getElementsByTagName('table')[0].className.includes('parent-');
+    let i: number = current_position + incrementor;
+    while (boundary_func(i) && is_child(i)) {
+        i += incrementor;
+    }
+    return boundary_func(i) ? i - current_position : 0;
+}
+
+function _highlight(element: Element) {
+    const current = <HTMLElement>element;
+    current.style.background = "aliceblue";
+    current.scrollIntoView(true);
+}
+
+function _unHighlight(element: Element) {
+    const last = <HTMLElement>element;
+    last.style.background = "";
+}
+
+function _findNearestTopCommentIndex(all_comments: HTMLCollectionOf<Element>): number {
+    // find the distance from top of viewport of all comments
+    const tops = Array.from(all_comments).map(x => x.getBoundingClientRect().top);
+
+    // find first non-negative top index (elements above viewport are negative)
+    let starting_index = 0;
+    for (; starting_index < tops.length; starting_index++) {
+        if (tops[starting_index] >= 0) break;
+    }
+    return starting_index;
+}
+
 
 main();
