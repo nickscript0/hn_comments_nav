@@ -1,5 +1,6 @@
 /**
  * TODOs:
+ *  - Currently when advancing same level comments, it stops if end of root, instead could advance to next element (as RES does)
  *  - Add key when held down overlays parent comment, so you can see the context of the current comment you're reading
  *  - Fix: should disable shortcut keys when user is inputting text in a textbox
  */
@@ -119,9 +120,18 @@ function _findNextRoot(current_position: number, incrementor: number, boundary_f
 
 function _findNextAtLevel(current_position: number, incrementor: number, boundary_func: ConditionFunc,
     all_comments: HTMLCollectionOf<Element>): number {
-    const nest_level = all_comments[current_position].getElementsByTagName('table')[0].className.split(' ').length;
-    const not_at_level = i => nest_level !== all_comments[i].getElementsByTagName('table')[0].className.split(' ').length;
-    return _findNextComment(current_position, incrementor, boundary_func,
+    const nest_level = all_comments[current_position].getElementsByTagName('table')[0].classList.length;
+    const not_at_level = i => nest_level !== all_comments[i].getElementsByTagName('table')[0].classList.length;
+
+    // Check it belongs to same parent
+    function modified_boundary(i) {
+        function get_parent(i) {
+            const parent_ids = all_comments[i].getElementsByTagName('table')[0].className.split(' ').filter(x => x.startsWith('parent-'));
+            return (parent_ids.length > 0) ? parent_ids[0] : null;
+        }
+        return get_parent(current_position) === get_parent(i) && boundary_func(i);
+    }
+    return _findNextComment(current_position, incrementor, modified_boundary,
         not_at_level, all_comments);
 }
 
