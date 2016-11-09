@@ -1,7 +1,5 @@
 /**
  * TODOs:
- *  - J/K should jump to next same level comment instead of next root (as RES does),
- *    then add N or something for jump to next root
  *  - Add key when held down overlays parent comment, so you can see the context of the current comment you're reading
  *  - Fix: should disable shortcut keys when user is inputting text in a textbox
  */
@@ -16,16 +14,26 @@ interface Nav {
     previous();
     nextRoot();
     previousRoot();
+    nextSameLevel();
+    previousSameLevel();
+}
+
+interface ConditionFunc {
+    (i: number): boolean;
 }
 
 function handle_key(nav: Nav) {
     const key_map = {
         'j': nav.next.bind(nav),
         'k': nav.previous.bind(nav),
-        'J': nav.nextRoot.bind(nav),
-        'K': nav.previousRoot.bind(nav)
+        'J': nav.nextSameLevel.bind(nav),
+        'K': nav.previousSameLevel.bind(nav),
+        'n': nav.nextRoot.bind(nav),
+        'm': nav.previousRoot.bind(nav)
     };
-    return (e: KeyboardEvent) => key_map[e.key]();
+    return (e: KeyboardEvent) => {
+        if (key_map[e.key]) key_map[e.key]();
+    };
 }
 
 /**
@@ -64,13 +72,24 @@ class BrowserNav implements Nav {
         this.position = _nextPosition(this.position, incrementor, boundary_func, this.all_comments);
     }
 
+    public nextSameLevel() {
+        const boundary_func = i => i < this.all_comments.length;
+        const incrementor = (this.position !== null) ? _findNextAtLevel(this.position, 1, boundary_func, this.all_comments) : 0;
+        this.position = _nextPosition(this.position, incrementor, boundary_func, this.all_comments);
+    }
+
+    public previousSameLevel() {
+        const boundary_func = i => i >= 0;
+        const incrementor = (this.position !== null) ? _findNextAtLevel(this.position, -1, boundary_func, this.all_comments) : 0;
+        this.position = _nextPosition(this.position, incrementor, boundary_func, this.all_comments);
+    }
     public get navPosition() {
         return this.position;
     }
 }
 
 function _nextPosition(current_position: number | null, incrementor: number, boundary_func: Function,
-    all_comments: HTMLCollectionOf<Element>) {
+    all_comments: HTMLCollectionOf<Element>): number {
     let new_position: number;
     // Case 1: no comment is highlighted, go to nearest
     if (current_position === null) {
@@ -91,11 +110,25 @@ function _nextPosition(current_position: number | null, incrementor: number, bou
     return new_position;
 }
 
-function _findNextRoot(current_position: number, incrementor: number, boundary_func: Function,
-    all_comments: HTMLCollectionOf<Element>) {
+function _findNextRoot(current_position: number, incrementor: number, boundary_func: ConditionFunc,
+    all_comments: HTMLCollectionOf<Element>): number {
     const is_child = i => all_comments[i].getElementsByTagName('table')[0].className.includes('parent-');
+    return _findNextComment(current_position, incrementor, boundary_func,
+        is_child, all_comments);
+}
+
+function _findNextAtLevel(current_position: number, incrementor: number, boundary_func: ConditionFunc,
+    all_comments: HTMLCollectionOf<Element>): number {
+    const nest_level = all_comments[current_position].getElementsByTagName('table')[0].className.split(' ').length;
+    const not_at_level = i => nest_level !== all_comments[i].getElementsByTagName('table')[0].className.split(' ').length;
+    return _findNextComment(current_position, incrementor, boundary_func,
+        not_at_level, all_comments);
+}
+
+function _findNextComment(current_position: number, incrementor: number, boundary_func: ConditionFunc,
+    condition_func: ConditionFunc, all_comments: HTMLCollectionOf<Element>): number {
     let i: number = current_position + incrementor;
-    while (boundary_func(i) && is_child(i)) {
+    while (boundary_func(i) && condition_func(i)) {
         i += incrementor;
     }
     return boundary_func(i) ? i - current_position : 0;
