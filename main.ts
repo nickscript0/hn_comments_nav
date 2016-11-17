@@ -131,7 +131,7 @@ function _findNextAtLevel(current_position: number, incrementor: number, boundar
             const parent_ids = all_comments[i].getElementsByTagName('table')[0].className.split(' ').filter(x => x.startsWith('parent-'));
             return (parent_ids.length > 0) ? parent_ids[0] : null;
         }
-        return get_parent(current_position) === get_parent(i) && boundary_func(i);
+        return boundary_func(i) && get_parent(current_position) === get_parent(i);
     }
     return _findNextComment(current_position, incrementor, modified_boundary,
         not_at_level, all_comments);
