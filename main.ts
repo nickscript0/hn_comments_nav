@@ -23,6 +23,11 @@ interface ConditionFunc {
     (i: number): boolean;
 }
 
+interface FinderFunc {
+    (current_position: number, incrementor: number, boundary_func: ConditionFunc,
+        all_comments: HTMLCollectionOf<Element>): number;
+}
+
 function handle_key(nav: Nav) {
     const key_map = {
         'j': nav.next.bind(nav),
@@ -62,34 +67,31 @@ class BrowserNav implements Nav {
     }
 
     public nextRoot() {
-        const boundary_func = i => i < this.all_comments.length;
-        const incrementor = (this.position !== null) ? _findNextRoot(this.position, 1, boundary_func, this.all_comments) : 0;
-        this.position = _nextPosition(this.position, incrementor, boundary_func, this.all_comments);
+        this._advance(1, i => i < this.all_comments.length, _findNextRoot);
     }
 
     public previousRoot() {
-        const boundary_func = i => i >= 0;
-        const incrementor = (this.position !== null) ? _findNextRoot(this.position, -1, boundary_func, this.all_comments) : 0;
-        this.position = _nextPosition(this.position, incrementor, boundary_func, this.all_comments);
+        this._advance(-1, i => i >= 0, _findNextRoot);
     }
 
     public nextSameLevel() {
-        const boundary_func = i => i < this.all_comments.length;
-        const incrementor = (this.position !== null) ? _findNextAtLevel(this.position, 1, boundary_func, this.all_comments) : 0;
-        this.position = _nextPosition(this.position, incrementor, boundary_func, this.all_comments);
+        this._advance(1, i => i < this.all_comments.length, _findNextAtLevel);
     }
 
     public previousSameLevel() {
-        const boundary_func = i => i >= 0;
-        const incrementor = (this.position !== null) ? _findNextAtLevel(this.position, -1, boundary_func, this.all_comments) : 0;
-        this.position = _nextPosition(this.position, incrementor, boundary_func, this.all_comments);
+        this._advance(-1, i => i >= 0, _findNextAtLevel);
     }
     public get navPosition() {
         return this.position;
     }
+
+    private _advance(increment: number, boundary_func: ConditionFunc, finder_func: FinderFunc) {
+        const incrementor = (this.position !== null) ? finder_func(this.position, increment, boundary_func, this.all_comments) : 0;
+        this.position = _nextPosition(this.position, incrementor, boundary_func, this.all_comments);
+    }
 }
 
-function _nextPosition(current_position: number | null, incrementor: number, boundary_func: Function,
+function _nextPosition(current_position: number | null, incrementor: number, boundary_func: ConditionFunc,
     all_comments: HTMLCollectionOf<Element>): number {
     let new_position: number;
     // Case 1: no comment is highlighted, go to nearest
@@ -156,13 +158,10 @@ function _unHighlight(element: Element) {
 }
 
 function _findNearestTopCommentIndex(all_comments: HTMLCollectionOf<Element>): number {
-    // find the distance from top of viewport of all comments
-    const tops = Array.from(all_comments).map(x => x.getBoundingClientRect().top);
-
-    // find first non-negative top index (elements above viewport are negative)
+    // find element index of first non-negative distance from top of viewport (elements above viewport are negative)
     let starting_index = 0;
-    for (; starting_index < tops.length; starting_index++) {
-        if (tops[starting_index] >= 0) break;
+    for (; starting_index < all_comments.length; starting_index++) {
+        if (all_comments[starting_index].getBoundingClientRect().top >= 0) break;
     }
     return starting_index;
 }
