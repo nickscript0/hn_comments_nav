@@ -1,3 +1,4 @@
+import { getAllComments } from 'hn_dom';
 
 export interface Nav {
     next();
@@ -25,7 +26,7 @@ export class BrowserNav implements Nav {
     private position: number | null;
 
     constructor() {
-        this.all_comments = document.getElementsByClassName('athing comtr ');
+        this.all_comments = getAllComments();
         console.log('all_comments size ' + this.all_comments.length);
 
         this.position = null;
