@@ -6,7 +6,7 @@
         "matches": [
             "https://news.ycombinator.com/*"
         ],
-        "js": ["main.js"]
+        "js": ["build/main.js"]
     }],
     "manifest_version": 2
 }
