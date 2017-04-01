@@ -1,9 +1,5 @@
 /**
- * TODOs:
- *  - Currently when advancing same level comments, it stops if end of root, instead could advance to next element (as RES does)
- *  - Add key when held down overlays parent comment, so you can see the context of the current comment you're reading
- *  - Add stats for the current comment (number of children, others?)
- *  - Fix: should disable shortcut keys when user is inputting text in a textbox
+ * HN Keynav Chrome Extension
  */
 
 function main() {
