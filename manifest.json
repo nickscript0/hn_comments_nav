@@ -2,11 +2,17 @@
     "name": "HN Keyboard Nav",
     "version": "0.1",
     "description": "Navigate Hacker News comments using the keyboard.",
-    "content_scripts": [{
-        "matches": [
-            "https://news.ycombinator.com/*"
-        ],
-        "js": ["build/main.js"]
-    }],
+    "content_scripts": [
+        {
+            "matches": [
+                "https://news.ycombinator.com/*"
+            ],
+            "js": [
+                "ext/require.min.js",
+                "build/main.js",
+                "ext/bootstrap.js"
+            ]
+        }
+    ],
     "manifest_version": 2
 }
