@@ -1,7 +1,6 @@
 /**
  * Highlight the original poster's name throughout the page
  */
-import { getAllComments } from 'hn_dom';
 
 export function highlight_op() {
     const subtext = document.getElementsByClassName('subtext');
@@ -44,7 +43,6 @@ export class TextHighlight implements Highlight {
     }
 
     private _highlightWord(word: string) {
-        const comments = getAllComments();
         let highlight_count = 0;
         const highlight_colour = this.colour.next();
         findNodesWithWord(word).forEach(n => {
