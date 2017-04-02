@@ -75,6 +75,27 @@ export class TextHighlight implements Highlight {
     }
 }
 
+function findNodesWithWord(word: string, nodes: HTMLCollectionOf<Element>): Array<Element> {
+    const filter_by_word: NodeFilter = {
+        acceptNode: n =>
+            (n.textContent && n.textContent.indexOf(word) !== -1)
+                ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_SKIP
+    }
+    const walker = document.createTreeWalker(
+        document.body,
+        NodeFilter.SHOW_TEXT,
+        filter_by_word,
+        false
+    );
+
+    let n;
+    const matched_nodes: Array<Element> = [];
+    while (n = walker.nextNode()) matched_nodes.push(n);
+
+    return matched_nodes;
+}
+
+
 const HIGHLIGHT_COLOURS = ['DarkOrchid', 'DarkCyan', 'Crimson', 'DarkGoldenRod', 'DarkOrange', 'Fuchsia'];
 
 class ColourState {
