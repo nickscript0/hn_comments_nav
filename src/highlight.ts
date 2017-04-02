@@ -4,7 +4,9 @@
 import { getAllComments } from 'hn_dom';
 
 export function highlight_op() {
-    const op_name = document.getElementsByClassName('subtext')[0]
+    const subtext = document.getElementsByClassName('subtext');
+    if (subtext.length === 0) return;
+    const op_name = subtext[0]
         .getElementsByClassName('hnuser')[0]
         .textContent;
     Array.from(document.getElementsByClassName('hnuser'))
@@ -48,31 +50,35 @@ export class TextHighlight implements Highlight {
         Array.from(comments).forEach(all_el => {
             const text_els = all_el.getElementsByClassName('c00');
             Array.from(text_els).forEach(original_node => {
-                if (original_node.textContent === null) return;
-                const word_index = original_node.textContent.indexOf(word);
-                if (word_index === -1) return;
-
-                // Build 3 new nodes to replace the original_node:
-                // pre_node, highlight_node, post_node
-                const pre_node = original_node.cloneNode();
-                pre_node.textContent = original_node.textContent.substring(0, word_index);
-                const post_node = original_node.cloneNode();
-                post_node.textContent = original_node.textContent.substring(word_index + word.length);
-
-                original_node.textContent = word;
-                const html_element = <HTMLElement>original_node;
-                html_element.style.color = highlight_colour;
-                html_element.style.fontWeight = 'bold';
-
-                // Replace original_node with the new nodes
-                if (original_node.parentNode === null) return;
-                original_node.parentNode.insertBefore(pre_node, original_node);
-                original_node.parentNode.insertBefore(post_node, original_node.nextSibling);
-                highlight_count++;
+                if (createHighlightNodeTrio(word, original_node, highlight_colour)) highlight_count++;
             });
         });
         console.log(`Highlighted ${word} ${highlight_count} times`);
     }
+}
+
+function createHighlightNodeTrio(word: string, original_node: Element, highlight_colour: string): boolean {
+    if (original_node.textContent === null) return false;
+    const word_index = original_node.textContent.indexOf(word);
+    if (word_index === -1) return false;
+
+    // Build 3 new nodes to replace the original_node:
+    // pre_node, highlight_node, post_node
+    const pre_node = original_node.cloneNode();
+    pre_node.textContent = original_node.textContent.substring(0, word_index);
+    const post_node = original_node.cloneNode();
+    post_node.textContent = original_node.textContent.substring(word_index + word.length);
+
+    original_node.textContent = word;
+    const html_element = <HTMLElement>original_node;
+    html_element.style.color = highlight_colour;
+    html_element.style.fontWeight = 'bold';
+
+    // Replace original_node with the new nodes
+    if (original_node.parentNode === null) return false;
+    original_node.parentNode.insertBefore(pre_node, original_node);
+    original_node.parentNode.insertBefore(post_node, original_node.nextSibling);
+    return true;
 }
 
 function findNodesWithWord(word: string, nodes: HTMLCollectionOf<Element>): Array<Element> {
