@@ -8,7 +8,7 @@ import { highlight_op, TextHighlight, Highlight } from "highlight";
 function main() {
     const nav = new BrowserNav();
     const highlighter = new TextHighlight();
-    document.onkeypress = handle_key(nav, highlighter);
+    document.addEventListener("keypress", handle_key(nav, highlighter), false);
 
     highlight_op();
 }
