@@ -53,9 +53,6 @@ export class TextHighlight implements Highlight {
             findNodesWithWord(word, c00_els).forEach(n => {
                 if (createHighlightNodeTrio(word, n, highlight_colour)) highlight_count++;
             });
-            // Array.from(text_els).forEach(original_node => {
-            //     if (createHighlightNodeTrio(word, original_node, highlight_colour)) highlight_count++;
-            // });
         });
         console.log(`Highlighted ${word} ${highlight_count} times`);
     }
@@ -68,20 +65,24 @@ function createHighlightNodeTrio(word: string, original_node: Element, highlight
 
     // Build 3 new nodes to replace the original_node:
     // pre_node, highlight_node, post_node
-    const pre_node = original_node.cloneNode();
+    const pre_node = document.createElement('span');
     pre_node.textContent = original_node.textContent.substring(0, word_index);
-    const post_node = original_node.cloneNode();
+    const post_node = document.createElement('span');
     post_node.textContent = original_node.textContent.substring(word_index + word.length);
 
-    original_node.textContent = word;
-    const html_element = <HTMLElement>original_node;
-    html_element.style.color = highlight_colour;
-    html_element.style.fontWeight = 'bold';
+
+    const highlight_node = document.createElement('span');
+    highlight_node.textContent = word;
+    highlight_node.style.color = highlight_colour;
+    highlight_node.style.fontWeight = 'bold';
+
 
     // Replace original_node with the new nodes
-    if (original_node.parentNode === null) return false;
-    original_node.parentNode.insertBefore(pre_node, original_node);
-    original_node.parentNode.insertBefore(post_node, original_node.nextSibling);
+    if (!original_node.parentNode) return false;
+    original_node.parentNode.replaceChild(highlight_node, original_node);
+    if (!highlight_node.parentNode) return false;
+    highlight_node.parentNode.insertBefore(pre_node, highlight_node);
+    highlight_node.parentNode.insertBefore(post_node, highlight_node.nextSibling);
     return true;
 }
 
@@ -90,7 +91,7 @@ function findNodesWithWord(word: string, nodes: NodeListOf<Element>): Array<Elem
         acceptNode: n =>
             (n.textContent && n.textContent.indexOf(word) !== -1)
                 ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_SKIP
-    }
+    };
     const walker = document.createTreeWalker(
         document.body,
         NodeFilter.SHOW_TEXT,
@@ -100,7 +101,7 @@ function findNodesWithWord(word: string, nodes: NodeListOf<Element>): Array<Elem
 
     let n;
     const matched_nodes: Array<Element> = [];
-    while (n = walker.nextNode()){
+    while (n = walker.nextNode()) {
         matched_nodes.push(n);
     }
 
