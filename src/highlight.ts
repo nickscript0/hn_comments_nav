@@ -48,10 +48,14 @@ export class TextHighlight implements Highlight {
         let highlight_count = 0;
         const highlight_colour = this.colour.next();
         Array.from(comments).forEach(all_el => {
-            const text_els = all_el.getElementsByClassName('c00');
-            Array.from(text_els).forEach(original_node => {
-                if (createHighlightNodeTrio(word, original_node, highlight_colour)) highlight_count++;
+            // els with class c00 appear are comment root nodes
+            const c00_els = all_el.getElementsByClassName('c00');
+            findNodesWithWord(word, c00_els).forEach(n => {
+                if (createHighlightNodeTrio(word, n, highlight_colour)) highlight_count++;
             });
+            // Array.from(text_els).forEach(original_node => {
+            //     if (createHighlightNodeTrio(word, original_node, highlight_colour)) highlight_count++;
+            // });
         });
         console.log(`Highlighted ${word} ${highlight_count} times`);
     }
@@ -81,7 +85,7 @@ function createHighlightNodeTrio(word: string, original_node: Element, highlight
     return true;
 }
 
-function findNodesWithWord(word: string, nodes: HTMLCollectionOf<Element>): Array<Element> {
+function findNodesWithWord(word: string, nodes: NodeListOf<Element>): Array<Element> {
     const filter_by_word: NodeFilter = {
         acceptNode: n =>
             (n.textContent && n.textContent.indexOf(word) !== -1)
@@ -96,7 +100,9 @@ function findNodesWithWord(word: string, nodes: HTMLCollectionOf<Element>): Arra
 
     let n;
     const matched_nodes: Array<Element> = [];
-    while (n = walker.nextNode()) matched_nodes.push(n);
+    while (n = walker.nextNode()){
+        matched_nodes.push(n);
+    }
 
     return matched_nodes;
 }
