@@ -47,17 +47,22 @@ export class TextHighlight implements Highlight {
         const comments = getAllComments();
         let highlight_count = 0;
         const highlight_colour = this.colour.next();
-        Array.from(comments).forEach(all_el => {
-            // els with class c00 appear are comment root nodes
-            const c00_els = all_el.getElementsByClassName('c00');
-            findNodesWithWord(word, c00_els).forEach(n => {
-                if (createHighlightNodeTrio(word, n, highlight_colour)) highlight_count++;
-            });
+        findNodesWithWord(word).forEach(n => {
+            if (createHighlightNodeTrio(word, n, highlight_colour)) highlight_count++;
         });
+
         console.log(`Highlighted ${word} ${highlight_count} times`);
     }
 }
 
+/**
+ * Given a textNode split its text into 3 span nodes: (pre_node, highlight_node, post_node), where
+ * highlight_node is 'word' highlighted with a style and the other nodes contain the surrounding text
+ * @param {string} word the word to highlight
+ * @param {Element} original_node the original textNode to split into 3
+ * @param {string} highlight_colour the colour to highlight
+ * @returns {boolean} true if match found and word highlighted, false otherwise
+ */
 function createHighlightNodeTrio(word: string, original_node: Element, highlight_colour: string): boolean {
     if (original_node.textContent === null) return false;
     const word_index = original_node.textContent.indexOf(word);
@@ -70,12 +75,10 @@ function createHighlightNodeTrio(word: string, original_node: Element, highlight
     const post_node = document.createElement('span');
     post_node.textContent = original_node.textContent.substring(word_index + word.length);
 
-
     const highlight_node = document.createElement('span');
     highlight_node.textContent = word;
     highlight_node.style.color = highlight_colour;
     highlight_node.style.fontWeight = 'bold';
-
 
     // Replace original_node with the new nodes
     if (!original_node.parentNode) return false;
@@ -86,7 +89,12 @@ function createHighlightNodeTrio(word: string, original_node: Element, highlight
     return true;
 }
 
-function findNodesWithWord(word: string, nodes: NodeListOf<Element>): Array<Element> {
+/**
+ * Find all the textNodes that have 'word' in them
+ * @param {string} word a string to match
+ * @returns {Array<Element>} the list of matched nodes
+ */
+function findNodesWithWord(word: string): Array<Element> {
     const filter_by_word: NodeFilter = {
         acceptNode: n =>
             (n.textContent && n.textContent.indexOf(word) !== -1)
