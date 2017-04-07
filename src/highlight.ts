@@ -32,7 +32,7 @@ export class TextHighlight implements Highlight {
     }
 
     add() {
-        const word = window.getSelection().toString();
+        const word = window.getSelection().toString().trim().toLowerCase();
         this.words.add(word);
         this._highlightWord(word);
         console.log('words is ', JSON.stringify(Array.from(this.words)));
@@ -63,7 +63,7 @@ export class TextHighlight implements Highlight {
  */
 function createHighlightNodeTrio(word: string, original_node: Element, highlight_colour: string): boolean {
     if (original_node.textContent === null) return false;
-    const word_index = original_node.textContent.indexOf(word);
+    const word_index = original_node.textContent.toLowerCase().indexOf(word);
     if (word_index === -1) return false;
 
     // Build 3 new nodes to replace the original_node:
@@ -74,7 +74,7 @@ function createHighlightNodeTrio(word: string, original_node: Element, highlight
     post_node.textContent = original_node.textContent.substring(word_index + word.length);
 
     const highlight_node = document.createElement('span');
-    highlight_node.textContent = word;
+    highlight_node.textContent = original_node.textContent.substring(word_index, word_index + word.length);
     highlight_node.style.color = highlight_colour;
     highlight_node.style.fontWeight = 'bold';
 
@@ -88,14 +88,16 @@ function createHighlightNodeTrio(word: string, original_node: Element, highlight
 }
 
 /**
- * Find all the textNodes that have 'word' in them
+ * Find all the textNodes that have 'word' in them (ignore case and whitespace only words)
  * @param {string} word a string to match
  * @returns {Array<Element>} the list of matched nodes
  */
 function findNodesWithWord(word: string): Array<Element> {
+    if (word === '') return [];
+
     const filter_by_word: NodeFilter = {
         acceptNode: n =>
-            (n.textContent && n.textContent.indexOf(word) !== -1)
+            (n.textContent && n.textContent.toLowerCase().indexOf(word) !== -1)
                 ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_SKIP
     };
     const walker = document.createTreeWalker(
@@ -113,7 +115,6 @@ function findNodesWithWord(word: string): Array<Element> {
 
     return matched_nodes;
 }
-
 
 const HIGHLIGHT_COLOURS = ['DarkOrchid', 'DarkCyan', 'Crimson', 'DarkGoldenRod', 'DarkOrange', 'Fuchsia'];
 
