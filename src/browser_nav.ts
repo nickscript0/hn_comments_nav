@@ -7,6 +7,8 @@ export interface Nav {
     previousRoot();
     nextSameLevel();
     previousSameLevel();
+    showParent();
+    hideParent();
 }
 
 interface ConditionFunc {
@@ -61,16 +63,19 @@ export class BrowserNav implements Nav {
     }
 
     public showParent() {
-        if (this.position && this.currentElement) {
-            const immediateParentI = _findImmediateParent(this.position, i => i >= 0, this.all_comments);
-            const currentBottom = this.currentElement.getBoundingClientRect().bottom;
-            const currentLeft = this.currentElement.getBoundingClientRect().left;
-            this.highlightedParent = _highlightAndOverlayParent(this.all_comments[immediateParentI], currentBottom, currentLeft);
+        // Only show parent if a current element is selected, and not already showing one, and not a root level element
+        if (this.position && this.currentElement && !this.highlightedParent && _nestLevel(this.currentElement) !== 1) {
+            const immediateParentI = this.position + _findImmediateParent(this.position, i => i >= 0, this.all_comments);
+            console.log(`Found immediateParent ${immediateParentI}`);
+            this.highlightedParent = _highlightAndOverlayParent(this.all_comments[immediateParentI], this.currentElement);
         }
     }
 
     public hideParent() {
-        this.highlightedParent && this.highlightedParent.remove();
+        if (this.highlightedParent) {
+            this.highlightedParent.remove();
+            this.highlightedParent = null;
+        }
     }
 
     public get navPosition() {
@@ -119,7 +124,8 @@ function _findNextRoot(current_position: number, incrementor: number, boundary_f
 function _findImmediateParent(current_position: number, boundary_func: ConditionFunc,
     all_comments: HTMLCollectionOf<Element>): number {
     const currentNestLevel = _nestLevel(all_comments[current_position]);
-    const isImmediateParent = i => _nestLevel(all_comments[i]) === currentNestLevel - 1;
+    const isImmediateParent = i => _nestLevel(all_comments[i]) !== currentNestLevel - 1;
+
     return _findNextComment(current_position, -1, boundary_func,
         isImmediateParent, all_comments);
 }
@@ -174,11 +180,11 @@ function _nestLevel(commentRow: Element): number {
     return commentRow.getElementsByTagName('table')[0].classList.length;
 }
 
-function _highlightAndOverlayParent(originalParent: Element, currentBottom: number,
-    currentLeft: number): HTMLElement {
+function _highlightAndOverlayParent(originalParent: Element, currentElement: HTMLElement): HTMLElement {
     const overlayNode = <HTMLElement>originalParent.cloneNode(true);
-    overlayNode.style.backgroundColor = 'PaleGreen';
-    overlayNode.style.top = currentBottom.toString();
-    overlayNode.style.left = currentLeft.toString();
+    overlayNode.style.backgroundColor = 'MistyRose';
+    overlayNode.style.top = currentElement.getBoundingClientRect().bottom.toString();
+    overlayNode.style.left = currentElement.getBoundingClientRect().left.toString();
+    currentElement.parentElement && currentElement.parentElement.insertBefore(overlayNode, currentElement.nextSibling);
     return overlayNode;
 }

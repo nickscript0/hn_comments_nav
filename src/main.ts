@@ -8,12 +8,13 @@ import { highlight_op, TextHighlight, Highlight } from "highlight";
 function main() {
     const nav = new BrowserNav();
     const highlighter = new TextHighlight();
-    document.addEventListener("keypress", handle_key(nav, highlighter), false);
-
+    document.addEventListener("keypress", handle_keypress(nav, highlighter), false);
+    document.addEventListener("keydown", handle_keydown(nav), false);
+    document.addEventListener("keyup", handle_keyup(nav), false);
     highlight_op();
 }
 
-function handle_key(nav: Nav, highlight: Highlight) {
+function handle_keypress(nav: Nav, highlight: Highlight) {
     const key_map = {
         'j': nav.next.bind(nav),
         'k': nav.previous.bind(nav),
@@ -25,9 +26,27 @@ function handle_key(nav: Nav, highlight: Highlight) {
         'h': highlight.add.bind(highlight),
         'c': highlight.clear.bind(highlight),
     };
+    return _keyInvoker(key_map);
+}
+
+function handle_keydown(nav: Nav) {
+    const key_map = {
+        'p': nav.showParent.bind(nav)
+    };
+    return _keyInvoker(key_map);
+}
+
+function handle_keyup(nav: Nav) {
+    const key_map = {
+        'p': nav.hideParent.bind(nav)
+    };
+    return _keyInvoker(key_map);
+}
+
+function _keyInvoker(key_map) {
     return (e: KeyboardEvent) => {
         if (key_map[e.key]) key_map[e.key]();
     };
-}
+};
 
 main();
