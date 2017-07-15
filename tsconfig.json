@@ -1,7 +1,15 @@
 {
     "compilerOptions": {
-        "target": "es6",
+        "target": "es5",
+        "lib": ["dom","es2016","dom.iterable","scripthost"],
         "sourceMap": true,
-        "strictNullChecks": true
-    }
+        "strictNullChecks": true,
+        "outFile": "build/main.js",
+        "module": "amd",
+        "rootDir": "src",
+        "outDir": "build"
+    },
+    "include": [
+        "src/**/*"
+    ]
 }

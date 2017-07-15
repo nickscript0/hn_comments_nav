@@ -1,36 +1,14 @@
-/**
- * HN Keynav Chrome Extension
- */
+import { getAllComments } from 'hn_dom';
 
-function main() {
-    const nav = new BrowserNav();
-    document.onkeypress = handle_key(nav);
-    highlight_op();
-}
-
-/**
- * Highlight the original poster's name throughout the page
- */
-function highlight_op() {
-    const op_name = document.getElementsByClassName('subtext')[0]
-        .getElementsByClassName('hnuser')[0]
-        .textContent;
-    Array.from(document.getElementsByClassName('hnuser'))
-        .filter(e => e.textContent === op_name)
-        .map(element => {
-            const html_element = <HTMLElement>element;
-            html_element.style.color = '#42c135';
-            html_element.style.fontWeight = 'bold';
-        });
-}
-
-interface Nav {
+export interface Nav {
     next();
     previous();
     nextRoot();
     previousRoot();
     nextSameLevel();
     previousSameLevel();
+    showParent();
+    hideParent();
 }
 
 interface ConditionFunc {
@@ -42,32 +20,20 @@ interface FinderFunc {
         all_comments: HTMLCollectionOf<Element>): number;
 }
 
-function handle_key(nav: Nav) {
-    const key_map = {
-        'j': nav.next.bind(nav),
-        'k': nav.previous.bind(nav),
-        'J': nav.nextSameLevel.bind(nav),
-        'K': nav.previousSameLevel.bind(nav),
-        'n': nav.nextRoot.bind(nav),
-        'm': nav.previousRoot.bind(nav)
-    };
-    return (e: KeyboardEvent) => {
-        if (key_map[e.key]) key_map[e.key]();
-    };
-}
-
 /**
  * Nav
  */
-class BrowserNav implements Nav {
+export class BrowserNav implements Nav {
     private all_comments: HTMLCollectionOf<Element>;
     private position: number | null;
+    private highlightedParent: Element | null;
 
     constructor() {
-        this.all_comments = document.getElementsByClassName('athing comtr ');
+        this.all_comments = getAllComments();
         console.log('all_comments size ' + this.all_comments.length);
 
         this.position = null;
+        this.highlightedParent = null;
     }
 
     public next() {
@@ -95,8 +61,29 @@ class BrowserNav implements Nav {
     public previousSameLevel() {
         this._advance(-1, i => i >= 0, _findNextAtLevel);
     }
+
+    public showParent() {
+        // Only show parent if a current element is selected, and not already showing one, and not a root level element
+        if (this.position && this.currentElement && !this.highlightedParent && _nestLevel(this.currentElement) !== 1) {
+            const immediateParentI = this.position + _findImmediateParent(this.position, i => i >= 0, this.all_comments);
+            console.log(`Found immediateParent ${immediateParentI}`);
+            this.highlightedParent = _highlightAndOverlayParent(this.all_comments[immediateParentI], this.currentElement);
+        }
+    }
+
+    public hideParent() {
+        if (this.highlightedParent) {
+            this.highlightedParent.remove();
+            this.highlightedParent = null;
+        }
+    }
+
     public get navPosition() {
         return this.position;
+    }
+
+    get currentElement() {
+        return this.position ? <HTMLElement>this.all_comments[this.position] : null;
     }
 
     private _advance(increment: number, boundary_func: ConditionFunc, finder_func: FinderFunc) {
@@ -134,10 +121,19 @@ function _findNextRoot(current_position: number, incrementor: number, boundary_f
         is_child, all_comments);
 }
 
+function _findImmediateParent(current_position: number, boundary_func: ConditionFunc,
+    all_comments: HTMLCollectionOf<Element>): number {
+    const currentNestLevel = _nestLevel(all_comments[current_position]);
+    const isImmediateParent = i => _nestLevel(all_comments[i]) !== currentNestLevel - 1;
+
+    return _findNextComment(current_position, -1, boundary_func,
+        isImmediateParent, all_comments);
+}
+
 function _findNextAtLevel(current_position: number, incrementor: number, boundary_func: ConditionFunc,
     all_comments: HTMLCollectionOf<Element>): number {
-    const nest_level = all_comments[current_position].getElementsByTagName('table')[0].classList.length;
-    const not_at_level = i => nest_level !== all_comments[i].getElementsByTagName('table')[0].classList.length;
+    const nest_level = _nestLevel(all_comments[current_position]);
+    const not_at_level = i => nest_level !== _nestLevel(all_comments[i]);
 
     // Check it belongs to same parent
     function modified_boundary(i) {
@@ -180,5 +176,15 @@ function _findNearestTopCommentIndex(all_comments: HTMLCollectionOf<Element>): n
     return starting_index;
 }
 
+function _nestLevel(commentRow: Element): number {
+    return commentRow.getElementsByTagName('table')[0].classList.length;
+}
 
-main();
+function _highlightAndOverlayParent(originalParent: Element, currentElement: HTMLElement): HTMLElement {
+    const overlayNode = <HTMLElement>originalParent.cloneNode(true);
+    overlayNode.style.backgroundColor = 'MistyRose';
+    overlayNode.style.top = currentElement.getBoundingClientRect().bottom.toString();
+    overlayNode.style.left = currentElement.getBoundingClientRect().left.toString();
+    currentElement.parentElement && currentElement.parentElement.insertBefore(overlayNode, currentElement.nextSibling);
+    return overlayNode;
+}
