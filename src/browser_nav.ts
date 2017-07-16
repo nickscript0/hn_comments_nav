@@ -9,6 +9,7 @@ export interface Nav {
     previousSameLevel();
     showParent();
     hideParent();
+    readonly currentElement: HTMLElement | null;
 }
 
 interface ConditionFunc {
@@ -82,8 +83,8 @@ export class BrowserNav implements Nav {
         return this.position;
     }
 
-    get currentElement() {
-        return this.position ? <HTMLElement>this.all_comments[this.position] : null;
+    public get currentElement(): HTMLElement | null {
+        return this.position !== null ? <HTMLElement>this.all_comments[this.position] : null;
     }
 
     private _advance(increment: number, boundary_func: ConditionFunc, finder_func: FinderFunc) {

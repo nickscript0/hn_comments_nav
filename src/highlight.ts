@@ -2,6 +2,8 @@
  * Highlight the original poster's name throughout the page
  */
 
+import { Nav } from 'browser_nav';
+
 export function highlight_op() {
     const subtext = document.getElementsByClassName('subtext');
     if (subtext.length === 0) return;
@@ -25,15 +27,19 @@ export interface Highlight {
 export class TextHighlight implements Highlight {
     private words: Set<string>;
     private colour: ColourState;
+    private browserNav: Nav;
 
-    constructor() {
+    constructor(browserNav: Nav) {
         this.words = new Set();
         this.colour = new ColourState();
+        this.browserNav = browserNav;
     }
 
     add() {
-        const word = window.getSelection().toString().trim().toLowerCase();
-        if (word !== '') {
+        const selection = window.getSelection().toString().trim().toLowerCase();
+        // If no text is selected highlight the author name of the current comment
+        const word = (selection !== '') ? selection : this._getPostAuthor();
+        if (word !== null && !this.words.has(word)) {
             this.words.add(word);
             this._highlightWord(word);
             console.log('words is ', JSON.stringify(Array.from(this.words)));
@@ -52,6 +58,19 @@ export class TextHighlight implements Highlight {
         });
 
         console.log(`Highlighted ${word} ${highlight_count} times`);
+    }
+
+    private _getPostAuthor(): string | null {
+        if (this.browserNav.currentElement) {
+            const hnuser = this.browserNav.currentElement.getElementsByClassName('hnuser');
+            if (hnuser.length > 0) {
+                const author = hnuser[0].textContent;
+                if (author !== null) { // Could be cleaner but typescript wasn't allowing the type guard for the more concise version
+                    return author.trim().toLowerCase();
+                }
+            }
+        }
+        return null;
     }
 }
 
