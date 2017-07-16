@@ -33,9 +33,11 @@ export class TextHighlight implements Highlight {
 
     add() {
         const word = window.getSelection().toString().trim().toLowerCase();
-        this.words.add(word);
-        this._highlightWord(word);
-        console.log('words is ', JSON.stringify(Array.from(this.words)));
+        if (word !== '') {
+            this.words.add(word);
+            this._highlightWord(word);
+            console.log('words is ', JSON.stringify(Array.from(this.words)));
+        }
     }
 
     clear() {
