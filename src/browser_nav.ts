@@ -136,13 +136,13 @@ function _findNextAtLevel(current_position: number, incrementor: number, boundar
     const nest_level = _nestLevel(all_comments[current_position]);
     const not_at_level = i => nest_level !== _nestLevel(all_comments[i]);
 
-    // Check it belongs to same parent
+    // Check it belongs to same parents
     function modified_boundary(i) {
-        function get_parent(i) {
+        function get_parents(i) {
             const parent_ids = all_comments[i].getElementsByTagName('table')[0].className.split(' ').filter(x => x.startsWith('parent-'));
-            return (parent_ids.length > 0) ? parent_ids[0] : null;
+            return (parent_ids.length > 0) ? parent_ids : null;
         }
-        return boundary_func(i) && get_parent(current_position) === get_parent(i);
+        return boundary_func(i) && _arraysEqual(get_parents(current_position), get_parents(i));
     }
     return _findNextComment(current_position, incrementor, modified_boundary,
         not_at_level, all_comments);
@@ -188,4 +188,15 @@ function _highlightAndOverlayParent(originalParent: Element, currentElement: HTM
     overlayNode.style.left = currentElement.getBoundingClientRect().left.toString();
     currentElement.parentElement && currentElement.parentElement.insertBefore(overlayNode, currentElement.nextSibling);
     return overlayNode;
+}
+
+function _arraysEqual<T>(arrA: Array<T> | null, arrB: Array<T> | null): boolean {
+    if (arrA === null || arrB === null) {
+        return (arrA === arrB);
+    }
+    let a = new Set(arrA);
+    let b = new Set(arrB);
+    let difference = new Set(Array.from(a).filter(x => !b.has(x)));
+    return difference.size === 0;
+
 }
