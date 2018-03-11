@@ -137,7 +137,24 @@ function findNodesWithWord(word: string): Array<Element> {
     return matched_nodes;
 }
 
-const HIGHLIGHT_COLOURS = ['DarkOrchid', 'DarkCyan', 'Crimson', 'DarkGoldenRod', 'DarkOrange', 'Fuchsia'];
+const HIGHLIGHT_COLOURS = [
+    'DarkOrchid',
+    'DarkCyan',
+    'Crimson',
+    'DarkGoldenRod',
+    'DarkOrange',
+    'Fuchsia',
+    'Brown',
+    'CadetBlue',
+    'Chocolate',
+    'CornflowerBlue',
+    'DarkGreen',
+    'DarkMagenta',
+    'DarkSlateBlue',
+    'DarkViolet',
+    'DeepPink',
+    'DeepSkyBlue'
+];
 
 class ColourState {
     colour_index: number;
