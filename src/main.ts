@@ -45,7 +45,8 @@ function handle_keyup(nav: Nav) {
 
 function _keyInvoker(key_map) {
     return (e: KeyboardEvent) => {
-        if (key_map[e.key]) key_map[e.key]();
+        const notTextArea = document.activeElement.tagName.toLowerCase() !== 'textarea';
+        if (notTextArea && key_map[e.key]) key_map[e.key]();
     };
 };
 
