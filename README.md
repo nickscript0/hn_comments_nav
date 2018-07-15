@@ -9,4 +9,4 @@
 - [ ] :green_book: Add stats for the current comment (number of children, others?)
 - [ ] :closed_book: Fix: should disable shortcut keys when user is inputting text in a textbox
 - [x] :green_book: Highlight OP's name
-- [ ] :closed_book: Add tag feature for a username, like RES has
+- [x] :closed_book: Add tag feature for a username, like RES has
