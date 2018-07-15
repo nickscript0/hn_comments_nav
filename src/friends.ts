@@ -10,9 +10,9 @@ export class Friends {
     }
 
     highlightFriends() {
-        const existingFriends = this.storage.all();
+        const existingFriendsNames = this.storage.allNames();
         Array.from(document.getElementsByClassName('hnuser'))
-            .filter(e => Object.keys(existingFriends).includes(e.textContent || ''))
+            .filter(e => existingFriendsNames.includes(e.textContent || ''))
             .forEach(element => {
                 const name = element.textContent;
                 if (name) {
@@ -20,7 +20,7 @@ export class Friends {
                     html_element.style.color = '#f44336';
                     html_element.style.fontWeight = 'bold';
                     html_element.className = 'hnuser friend';
-                    html_element.textContent = name + ` [${existingFriends[name]}]`;
+                    html_element.textContent = this.storage.getNameCommentString(name);
                 }
             });
     }
@@ -46,13 +46,25 @@ class FriendStorage {
         this.friendsObj = JSON.parse(this.storage.getItem('hn_friends') || '{}');
     }
 
-    all() {
-        return this.friendsObj;
+    allNames() {
+        return Object.keys(this.friendsObj);
     }
 
-    add(name, comment) {
-        this.friendsObj[name] = comment;
+    add(value, comment) {
+        const name = this.nameFromValue(value);
+        // if the comment is empty, delete the friend
+        this.friendsObj[name] = comment || undefined;
         this.write();
+    }
+
+    getNameCommentString(name: string) {
+        const comment = this.friendsObj[name];
+        return `${name} [${comment}]`;
+    }
+
+    // This will return the name in both cases if it is a comment name string or just a name
+    private nameFromValue(value: string) {
+        return value.split(' [')[0];
     }
 
     private write() {
