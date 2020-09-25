@@ -2,9 +2,9 @@
  * HN Keynav Chrome Extension
  */
 
-import { BrowserNav, Nav } from "browser_nav";
-import { highlight_op, TextHighlight, Highlight } from "highlight";
-import { Friends } from "friends";
+import { BrowserNav, Nav } from "./browser_nav";
+import { highlight_op, TextHighlight, Highlight } from "./highlight";
+import { Friends } from "./friends";
 
 function main() {
     const nav = new BrowserNav();
@@ -25,6 +25,7 @@ function handle_keypress(nav: Nav, highlight: Highlight, friends: Friends) {
         'K': nav.previousSameLevel.bind(nav),
         'n': nav.nextRoot.bind(nav),
         'm': nav.previousRoot.bind(nav),
+        'l': nav.toggleCollapseThread.bind(nav),
 
         'h': highlight.add.bind(highlight),
         'c': highlight.clear.bind(highlight),
@@ -50,7 +51,7 @@ function handle_keyup(nav: Nav) {
 
 function _keyInvoker(key_map) {
     return (e: KeyboardEvent) => {
-        const notTextArea = document.activeElement.tagName.toLowerCase() !== 'textarea';
+        const notTextArea = document?.activeElement?.tagName.toLowerCase() !== 'textarea';
         if (notTextArea && key_map[e.key]) key_map[e.key]();
     };
 };

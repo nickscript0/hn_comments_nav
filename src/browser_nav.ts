@@ -1,4 +1,5 @@
-import { getAllComments } from 'hn_dom';
+import { getAllComments } from './hn_dom';
+declare function toggle(event: any, id: string);
 
 export interface Nav {
     next();
@@ -9,6 +10,7 @@ export interface Nav {
     previousSameLevel();
     showParent();
     hideParent();
+    toggleCollapseThread();
     readonly currentElement: HTMLElement | null;
 }
 
@@ -76,6 +78,14 @@ export class BrowserNav implements Nav {
         if (this.highlightedParent) {
             this.highlightedParent.remove();
             this.highlightedParent = null;
+        }
+    }
+
+    public toggleCollapseThread() {
+        if (this.currentElement?.id) {
+            const toggleElements = this.currentElement.getElementsByClassName('togg');
+            if (toggleElements.length === 0) return;
+            (toggleElements[0] as HTMLElement).click();
         }
     }
 

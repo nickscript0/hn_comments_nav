@@ -1,4 +1,4 @@
-import { Nav } from 'browser_nav';
+import { Nav } from './browser_nav';
 
 export class Friends {
     private storage: FriendStorage;

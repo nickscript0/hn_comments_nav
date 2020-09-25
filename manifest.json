@@ -8,9 +8,7 @@
                 "https://news.ycombinator.com/*"
             ],
             "js": [
-                "ext/require.min.js",
-                "build/main.js",
-                "ext/bootstrap.js"
+                "build/main.bundle.js"
             ]
         }
     ],

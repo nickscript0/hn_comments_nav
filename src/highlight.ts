@@ -2,7 +2,7 @@
  * Highlight the original poster's name throughout the page
  */
 
-import { Nav } from 'browser_nav';
+import { Nav } from './browser_nav';
 
 export function highlight_op() {
     const subtext = document.getElementsByClassName('subtext');
@@ -36,10 +36,10 @@ export class TextHighlight implements Highlight {
     }
 
     add() {
-        const selection = window.getSelection().toString().trim().toLowerCase();
+        const selection = window.getSelection()?.toString().trim().toLowerCase();
         // If no text is selected highlight the author name of the current comment
         const word = (selection !== '') ? selection : this._getPostAuthor();
-        if (word !== null && !this.words.has(word)) {
+        if (word !== null && word !== undefined && !this.words.has(word)) {
             this.words.add(word);
             this._highlightWord(word);
             console.log('words is ', JSON.stringify(Array.from(this.words)));
