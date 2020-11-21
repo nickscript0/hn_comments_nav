@@ -1,5 +1,7 @@
 import { getAllComments } from './hn_dom';
-declare function toggle(event: any, id: string);
+
+// No longer need this, can remove
+// declare function toggle(event: any, id: string);
 
 export interface Nav {
     next();
@@ -159,7 +161,7 @@ function _findNextAtLevel(current_position: number, incrementor: number, boundar
 }
 
 function _findNextComment(current_position: number, incrementor: number, boundary_func: ConditionFunc,
-    condition_func: ConditionFunc, all_comments: HTMLCollectionOf<Element>): number {
+    condition_func: ConditionFunc, _all_comments: HTMLCollectionOf<Element>): number {
     let i: number = current_position + incrementor;
     while (boundary_func(i) && condition_func(i)) {
         i += incrementor;
@@ -204,9 +206,9 @@ function _arraysEqual<T>(arrA: Array<T> | null, arrB: Array<T> | null): boolean 
     if (arrA === null || arrB === null) {
         return (arrA === arrB);
     }
-    let a = new Set(arrA);
-    let b = new Set(arrB);
-    let difference = new Set(Array.from(a).filter(x => !b.has(x)));
+    const a = new Set(arrA);
+    const b = new Set(arrB);
+    const difference = new Set(Array.from(a).filter(x => !b.has(x)));
     return difference.size === 0;
 
 }

@@ -1,5 +1,10 @@
 # hn_comments_nav
 
+## Build
+```bash
+npm run build
+```
+
 ## TODOs
 - [x] :green_book: Add a shortcut to highlight the currently selected post's author
 - [ ] :closed_book: Bug: multi-keyword highlight only procsses one match in an element (should process all matches)

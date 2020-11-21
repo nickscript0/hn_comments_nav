@@ -20,8 +20,11 @@
     },
     "homepage": "https://github.com/nickscript0/hn_comments_nav#readme",
     "devDependencies": {
+        "@typescript-eslint/eslint-plugin": "^4.8.1",
+        "@typescript-eslint/parser": "^4.8.1",
+        "eslint": "^7.14.0",
         "ts-loader": "^8.0.4",
-        "typescript": "^4.0.3",
+        "typescript": "^4.1.2",
         "webpack": "^4.44.2",
         "webpack-cli": "^3.3.12",
         "webpack-notifier": "github:nickscript0/webpack-notifier"
