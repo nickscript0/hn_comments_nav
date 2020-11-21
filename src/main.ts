@@ -25,8 +25,8 @@ function handle_keypress(nav: Nav, highlight: Highlight, friends: Friends) {
         'K': nav.previousSameLevel.bind(nav),
         'n': nav.nextRoot.bind(nav),
         'm': nav.previousRoot.bind(nav),
-        'N': nav.nextOneLevelUp.bind(nav),
-        'M': nav.previousOneLevelUp.bind(nav),
+        'N': nav.nextParent.bind(nav),
+        'M': nav.previousParent.bind(nav),
 
         'l': nav.toggleCollapseThread.bind(nav),
 
