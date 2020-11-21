@@ -25,6 +25,9 @@ function handle_keypress(nav: Nav, highlight: Highlight, friends: Friends) {
         'K': nav.previousSameLevel.bind(nav),
         'n': nav.nextRoot.bind(nav),
         'm': nav.previousRoot.bind(nav),
+        'N': nav.nextOneLevelUp.bind(nav),
+        'M': nav.previousOneLevelUp.bind(nav),
+
         'l': nav.toggleCollapseThread.bind(nav),
 
         'h': highlight.add.bind(highlight),
@@ -54,6 +57,6 @@ function _keyInvoker(key_map) {
         const notTextArea = document?.activeElement?.tagName.toLowerCase() !== 'textarea';
         if (notTextArea && key_map[e.key]) key_map[e.key]();
     };
-};
+}
 
 main();

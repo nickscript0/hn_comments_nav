@@ -10,6 +10,8 @@ export interface Nav {
     previousRoot();
     nextSameLevel();
     previousSameLevel();
+    nextParent();
+    previousParent();
     showParent();
     hideParent();
     toggleCollapseThread();
@@ -67,11 +69,20 @@ export class BrowserNav implements Nav {
         this._advance(-1, i => i >= 0, _findNextAtLevel);
     }
 
+    public nextParent() {
+        this._advance(1, i => i < this.all_comments.length, _findClosestParent);
+    }
+
+    public previousParent() {
+        // Note _findImmediateParent could be replaced with _findClosestParent here as they are equivalent 
+        // (as all nodes should have an immediate parent)
+        this._advance(-1, i => i >= 0, _findImmediateParent);
+    }
+
     public showParent() {
         // Only show parent if a current element is selected, and not already showing one, and not a root level element
         if (this.position && this.currentElement && !this.highlightedParent && _nestLevel(this.currentElement) !== 1) {
-            const immediateParentI = this.position + _findImmediateParent(this.position, i => i >= 0, this.all_comments);
-            console.log(`Found immediateParent ${immediateParentI}`);
+            const immediateParentI = this.position + _findImmediateParent(this.position, -1, i => i >= 0, this.all_comments);
             this.highlightedParent = _highlightAndOverlayParent(this.all_comments[immediateParentI], this.currentElement);
         }
     }
@@ -134,13 +145,23 @@ function _findNextRoot(current_position: number, incrementor: number, boundary_f
         is_child, all_comments);
 }
 
-function _findImmediateParent(current_position: number, boundary_func: ConditionFunc,
+function _findImmediateParent(current_position: number, incrementor: number, boundary_func: ConditionFunc,
     all_comments: HTMLCollectionOf<Element>): number {
     const currentNestLevel = _nestLevel(all_comments[current_position]);
     const isImmediateParent = i => _nestLevel(all_comments[i]) !== currentNestLevel - 1;
 
-    return _findNextComment(current_position, -1, boundary_func,
+    return _findNextComment(current_position, incrementor, boundary_func,
         isImmediateParent, all_comments);
+}
+
+// Similar to 'findImmediateParent' but continues searching past one level up all the way until the root
+function _findClosestParent(current_position: number, incrementor: number, boundary_func: ConditionFunc,
+    all_comments: HTMLCollectionOf<Element>): number {
+    const currentNestLevel = _nestLevel(all_comments[current_position]);
+    const equalOrHigherNestLevel = i => currentNestLevel <= _nestLevel(all_comments[i]);
+
+    return _findNextComment(current_position, incrementor, boundary_func,
+        equalOrHigherNestLevel, all_comments);
 }
 
 function _findNextAtLevel(current_position: number, incrementor: number, boundary_func: ConditionFunc,
