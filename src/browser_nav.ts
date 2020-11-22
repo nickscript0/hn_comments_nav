@@ -23,8 +23,12 @@ interface ConditionFunc {
 }
 
 interface FinderFunc {
-    (current_position: number, incrementor: number, boundary_func: ConditionFunc,
-        all_comments: HTMLCollectionOf<Element>): number;
+    (
+        current_position: number,
+        incrementor: number,
+        boundary_func: ConditionFunc,
+        all_comments: HTMLCollectionOf<Element>
+    ): number;
 }
 
 /**
@@ -44,13 +48,11 @@ export class BrowserNav implements Nav {
     }
 
     public next() {
-        this.position = _nextPosition(this.position, 1,
-            p => p < this.all_comments.length, this.all_comments);
+        this.position = _nextPosition(this.position, 1, p => p < this.all_comments.length, this.all_comments);
     }
 
     public previous() {
-        this.position = _nextPosition(this.position, -1,
-            p => p >= 0, this.all_comments);
+        this.position = _nextPosition(this.position, -1, p => p >= 0, this.all_comments);
     }
 
     public nextRoot() {
@@ -74,7 +76,7 @@ export class BrowserNav implements Nav {
     }
 
     public previousParent() {
-        // Note _findImmediateParent could be replaced with _findClosestParent here as they are equivalent 
+        // Note _findImmediateParent could be replaced with _findClosestParent here as they are equivalent
         // (as all nodes should have an immediate parent)
         this._advance(-1, i => i >= 0, _findImmediateParent);
     }
@@ -82,8 +84,12 @@ export class BrowserNav implements Nav {
     public showParent() {
         // Only show parent if a current element is selected, and not already showing one, and not a root level element
         if (this.position && this.currentElement && !this.highlightedParent && _nestLevel(this.currentElement) !== 1) {
-            const immediateParentI = this.position + _findImmediateParent(this.position, -1, i => i >= 0, this.all_comments);
-            this.highlightedParent = _highlightAndOverlayParent(this.all_comments[immediateParentI], this.currentElement);
+            const immediateParentI =
+                this.position + _findImmediateParent(this.position, -1, i => i >= 0, this.all_comments);
+            this.highlightedParent = _highlightAndOverlayParent(
+                this.all_comments[immediateParentI],
+                this.currentElement
+            );
         }
     }
 
@@ -111,13 +117,18 @@ export class BrowserNav implements Nav {
     }
 
     private _advance(increment: number, boundary_func: ConditionFunc, finder_func: FinderFunc) {
-        const incrementor = (this.position !== null) ? finder_func(this.position, increment, boundary_func, this.all_comments) : 0;
+        const incrementor =
+            this.position !== null ? finder_func(this.position, increment, boundary_func, this.all_comments) : 0;
         this.position = _nextPosition(this.position, incrementor, boundary_func, this.all_comments);
     }
 }
 
-function _nextPosition(current_position: number | null, incrementor: number, boundary_func: ConditionFunc,
-    all_comments: HTMLCollectionOf<Element>): number {
+function _nextPosition(
+    current_position: number | null,
+    incrementor: number,
+    boundary_func: ConditionFunc,
+    all_comments: HTMLCollectionOf<Element>
+): number {
     let new_position: number;
     // Case 1: no comment is highlighted, go to nearest
     if (current_position === null) {
@@ -138,51 +149,71 @@ function _nextPosition(current_position: number | null, incrementor: number, bou
     return new_position;
 }
 
-function _findNextRoot(current_position: number, incrementor: number, boundary_func: ConditionFunc,
-    all_comments: HTMLCollectionOf<Element>): number {
+function _findNextRoot(
+    current_position: number,
+    incrementor: number,
+    boundary_func: ConditionFunc,
+    all_comments: HTMLCollectionOf<Element>
+): number {
     const is_child = i => all_comments[i].getElementsByTagName('table')[0].className.includes('parent-');
-    return _findNextComment(current_position, incrementor, boundary_func,
-        is_child, all_comments);
+    return _findNextComment(current_position, incrementor, boundary_func, is_child, all_comments);
 }
 
-function _findImmediateParent(current_position: number, incrementor: number, boundary_func: ConditionFunc,
-    all_comments: HTMLCollectionOf<Element>): number {
+function _findImmediateParent(
+    current_position: number,
+    incrementor: number,
+    boundary_func: ConditionFunc,
+    all_comments: HTMLCollectionOf<Element>
+): number {
     const currentNestLevel = _nestLevel(all_comments[current_position]);
     const isImmediateParent = i => _nestLevel(all_comments[i]) !== currentNestLevel - 1;
 
-    return _findNextComment(current_position, incrementor, boundary_func,
-        isImmediateParent, all_comments);
+    return _findNextComment(current_position, incrementor, boundary_func, isImmediateParent, all_comments);
 }
 
 // Similar to 'findImmediateParent' but continues searching past one level up all the way until the root
-function _findClosestParent(current_position: number, incrementor: number, boundary_func: ConditionFunc,
-    all_comments: HTMLCollectionOf<Element>): number {
+function _findClosestParent(
+    current_position: number,
+    incrementor: number,
+    boundary_func: ConditionFunc,
+    all_comments: HTMLCollectionOf<Element>
+): number {
     const currentNestLevel = _nestLevel(all_comments[current_position]);
     const equalOrHigherNestLevel = i => currentNestLevel <= _nestLevel(all_comments[i]);
 
-    return _findNextComment(current_position, incrementor, boundary_func,
-        equalOrHigherNestLevel, all_comments);
+    return _findNextComment(current_position, incrementor, boundary_func, equalOrHigherNestLevel, all_comments);
 }
 
-function _findNextAtLevel(current_position: number, incrementor: number, boundary_func: ConditionFunc,
-    all_comments: HTMLCollectionOf<Element>): number {
+function _findNextAtLevel(
+    current_position: number,
+    incrementor: number,
+    boundary_func: ConditionFunc,
+    all_comments: HTMLCollectionOf<Element>
+): number {
     const nest_level = _nestLevel(all_comments[current_position]);
     const not_at_level = i => nest_level !== _nestLevel(all_comments[i]);
 
     // Check it belongs to same parents
     function modified_boundary(i) {
         function get_parents(i) {
-            const parent_ids = all_comments[i].getElementsByTagName('table')[0].className.split(' ').filter(x => x.startsWith('parent-'));
-            return (parent_ids.length > 0) ? parent_ids : null;
+            const parent_ids = all_comments[i]
+                .getElementsByTagName('table')[0]
+                .className.split(' ')
+                .filter(x => x.startsWith('parent-'));
+            return parent_ids.length > 0 ? parent_ids : null;
         }
         return boundary_func(i) && _arraysEqual(get_parents(current_position), get_parents(i));
     }
-    return _findNextComment(current_position, incrementor, modified_boundary,
-        not_at_level, all_comments);
+    return _findNextComment(current_position, incrementor, modified_boundary, not_at_level, all_comments);
 }
 
-function _findNextComment(current_position: number, incrementor: number, boundary_func: ConditionFunc,
-    condition_func: ConditionFunc, _all_comments: HTMLCollectionOf<Element>): number {
+function _findNextComment(
+    current_position: number,
+    incrementor: number,
+    boundary_func: ConditionFunc,
+    condition_func: ConditionFunc,
+    _all_comments: HTMLCollectionOf<Element>
+): number {
     let i: number = current_position + incrementor;
     while (boundary_func(i) && condition_func(i)) {
         i += incrementor;
@@ -192,13 +223,13 @@ function _findNextComment(current_position: number, incrementor: number, boundar
 
 function _highlight(element: Element) {
     const current = <HTMLElement>element;
-    current.style.background = "aliceblue";
+    current.style.background = 'aliceblue';
     current.scrollIntoView(true);
 }
 
 function _unHighlight(element: Element) {
     const last = <HTMLElement>element;
-    last.style.background = "";
+    last.style.background = '';
 }
 
 function _findNearestTopCommentIndex(all_comments: HTMLCollectionOf<Element>): number {
@@ -225,11 +256,10 @@ function _highlightAndOverlayParent(originalParent: Element, currentElement: HTM
 
 function _arraysEqual<T>(arrA: Array<T> | null, arrB: Array<T> | null): boolean {
     if (arrA === null || arrB === null) {
-        return (arrA === arrB);
+        return arrA === arrB;
     }
     const a = new Set(arrA);
     const b = new Set(arrB);
     const difference = new Set(Array.from(a).filter(x => !b.has(x)));
     return difference.size === 0;
-
 }

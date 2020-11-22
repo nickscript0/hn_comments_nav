@@ -7,9 +7,7 @@ import { Nav } from './browser_nav';
 export function highlight_op() {
     const subtext = document.getElementsByClassName('subtext');
     if (subtext.length === 0) return;
-    const op_name = subtext[0]
-        .getElementsByClassName('hnuser')[0]
-        .textContent;
+    const op_name = subtext[0].getElementsByClassName('hnuser')[0].textContent;
     Array.from(document.getElementsByClassName('hnuser'))
         .filter(e => e.textContent === op_name)
         .map(element => {
@@ -38,7 +36,7 @@ export class TextHighlight implements Highlight {
     add() {
         const selection = window.getSelection()?.toString().trim().toLowerCase();
         // If no text is selected highlight the author name of the current comment
-        const word = (selection !== '') ? selection : this._getPostAuthor();
+        const word = selection !== '' ? selection : this._getPostAuthor();
         if (word !== null && word !== undefined && !this.words.has(word)) {
             this.words.add(word);
             this._highlightWord(word);
@@ -65,7 +63,8 @@ export class TextHighlight implements Highlight {
             const hnuser = this.browserNav.currentElement.getElementsByClassName('hnuser');
             if (hnuser.length > 0) {
                 const author = hnuser[0].textContent;
-                if (author !== null) { // Could be cleaner but typescript wasn't allowing the type guard for the more concise version
+                if (author !== null) {
+                    // Could be cleaner but typescript wasn't allowing the type guard for the more concise version
                     return author.trim().toLowerCase();
                 }
             }
@@ -118,19 +117,15 @@ function findNodesWithWord(word: string): Array<Element> {
 
     const filter_by_word: NodeFilter = {
         acceptNode: n =>
-            (n.textContent && n.textContent.toLowerCase().indexOf(word) !== -1)
-                ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_SKIP
+            n.textContent && n.textContent.toLowerCase().indexOf(word) !== -1
+                ? NodeFilter.FILTER_ACCEPT
+                : NodeFilter.FILTER_SKIP,
     };
-    const walker = document.createTreeWalker(
-        document.body,
-        NodeFilter.SHOW_TEXT,
-        filter_by_word,
-        false
-    );
+    const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, filter_by_word, false);
 
     let n;
     const matched_nodes: Array<Element> = [];
-    while (n = walker.nextNode()) {
+    while ((n = walker.nextNode())) {
         matched_nodes.push(n);
     }
 
@@ -153,7 +148,7 @@ const HIGHLIGHT_COLOURS = [
     'DarkSlateBlue',
     'DarkViolet',
     'DeepPink',
-    'DeepSkyBlue'
+    'DeepSkyBlue',
 ];
 
 class ColourState {

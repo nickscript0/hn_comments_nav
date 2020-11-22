@@ -34,7 +34,6 @@ export class Friends {
             this.storage.add(author, comment);
         }
     }
-
 }
 
 class FriendStorage {
