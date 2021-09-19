@@ -1,4 +1,4 @@
-import { getAllComments } from './hn_dom';
+import { getAllComments, getIndent } from './hn_dom';
 
 // No longer need this, can remove
 // declare function toggle(event: any, id: string);
@@ -155,7 +155,7 @@ function _findNextRoot(
     boundary_func: ConditionFunc,
     all_comments: HTMLCollectionOf<Element>
 ): number {
-    const is_child = i => all_comments[i].getElementsByTagName('table')[0].className.includes('parent-');
+    const is_child = i => getIndent(all_comments[i]) > 0;
     return _findNextComment(current_position, incrementor, boundary_func, is_child, all_comments);
 }
 
@@ -194,17 +194,22 @@ function _findNextAtLevel(
     const not_at_level = i => nest_level !== _nestLevel(all_comments[i]);
 
     // Check it belongs to same parents
-    function modified_boundary(i) {
-        function get_parents(i) {
-            const parent_ids = all_comments[i]
-                .getElementsByTagName('table')[0]
-                .className.split(' ')
-                .filter(x => x.startsWith('parent-'));
-            return parent_ids.length > 0 ? parent_ids : null;
+    function sameParentOrDescendant(i) {
+        function getParentId(i) {
+            if (i < 0) return false;
+            const currentIndent = getIndent(all_comments[i]);
+            if (currentIndent === null) return null;
+            let idx = i;
+            while (idx > 0 && getIndent(all_comments[idx]) >= currentIndent) {
+                idx--;
+            }
+            return all_comments[idx].id;
         }
-        return boundary_func(i) && _arraysEqual(get_parents(current_position), get_parents(i));
+        const sameParent = getParentId(current_position) == getParentId(i);
+        const isDescendant = getIndent(all_comments[i]) > getIndent(all_comments[current_position]);
+        return boundary_func(i) && (sameParent || isDescendant);
     }
-    return _findNextComment(current_position, incrementor, modified_boundary, not_at_level, all_comments);
+    return _findNextComment(current_position, incrementor, sameParentOrDescendant, not_at_level, all_comments);
 }
 
 function _findNextComment(
@@ -215,6 +220,7 @@ function _findNextComment(
     _all_comments: HTMLCollectionOf<Element>
 ): number {
     let i: number = current_position + incrementor;
+
     while (boundary_func(i) && condition_func(i)) {
         i += incrementor;
     }
@@ -242,7 +248,8 @@ function _findNearestTopCommentIndex(all_comments: HTMLCollectionOf<Element>): n
 }
 
 function _nestLevel(commentRow: Element): number {
-    return commentRow.getElementsByTagName('table')[0].classList.length;
+    // return commentRow.getElementsByTagName('table')[0].classList.length;
+    return getIndent(commentRow);
 }
 
 function _highlightAndOverlayParent(originalParent: Element, currentElement: HTMLElement): HTMLElement {
@@ -254,12 +261,12 @@ function _highlightAndOverlayParent(originalParent: Element, currentElement: HTM
     return overlayNode;
 }
 
-function _arraysEqual<T>(arrA: Array<T> | null, arrB: Array<T> | null): boolean {
-    if (arrA === null || arrB === null) {
-        return arrA === arrB;
-    }
-    const a = new Set(arrA);
-    const b = new Set(arrB);
-    const difference = new Set(Array.from(a).filter(x => !b.has(x)));
-    return difference.size === 0;
-}
+// function _arraysEqual<T>(arrA: Array<T> | null, arrB: Array<T> | null): boolean {
+//     if (arrA === null || arrB === null) {
+//         return arrA === arrB;
+//     }
+//     const a = new Set(arrA);
+//     const b = new Set(arrB);
+//     const difference = new Set(Array.from(a).filter(x => !b.has(x)));
+//     return difference.size === 0;
+// }
