@@ -195,6 +195,8 @@ function _findNextAtLevel(
 
     // Check it belongs to same parents
     function sameParentOrDescendant(i) {
+        // Return false immediately if we're out of bounds
+        if (!boundary_func(i)) return false;
         function getParentId(i) {
             if (i < 0) return false;
             const currentIndent = getIndent(all_comments[i]);
@@ -207,7 +209,7 @@ function _findNextAtLevel(
         }
         const sameParent = getParentId(current_position) == getParentId(i);
         const isDescendant = getIndent(all_comments[i]) > getIndent(all_comments[current_position]);
-        return boundary_func(i) && (sameParent || isDescendant);
+        return sameParent || isDescendant;
     }
     return _findNextComment(current_position, incrementor, sameParentOrDescendant, not_at_level, all_comments);
 }
