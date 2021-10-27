@@ -83,7 +83,7 @@ export class BrowserNav implements Nav {
 
     public showParent() {
         // Only show parent if a current element is selected, and not already showing one, and not a root level element
-        if (this.position && this.currentElement && !this.highlightedParent && _nestLevel(this.currentElement) !== 1) {
+        if (this.position && this.currentElement && !this.highlightedParent && _nestLevel(this.currentElement) !== 0) {
             const immediateParentI =
                 this.position + _findImmediateParent(this.position, -1, i => i >= 0, this.all_comments);
             this.highlightedParent = _highlightAndOverlayParent(
