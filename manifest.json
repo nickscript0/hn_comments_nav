@@ -1,7 +1,7 @@
 {
     "name": "HN Keyboard Nav",
     "version": "0.2",
-    "description": "Navigate Hacker News comments using the keyboard.",
+    "description": "Navigate Hacker News (news.ycombinator.com) comments using the keyboard.",
     "content_scripts": [
         {
             "matches": ["https://news.ycombinator.com/*"],
