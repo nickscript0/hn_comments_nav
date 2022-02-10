@@ -5,6 +5,9 @@
 npm run build
 ```
 
+## Notes
+- Icons from https://iconarchive.com/show/keyboard-keys-icons-by-chromatix/letter-h-icon.html
+
 ## TODOs
 - [x] :green_book: Add a shortcut to highlight the currently selected post's author
 - [ ] :closed_book: Bug: multi-keyword highlight only processes one match in an element (should process all matches)

@@ -1,16 +1,13 @@
 {
     "name": "HN Keyboard Nav",
-    "version": "0.1",
+    "version": "0.2",
     "description": "Navigate Hacker News comments using the keyboard.",
     "content_scripts": [
         {
-            "matches": [
-                "https://news.ycombinator.com/*"
-            ],
-            "js": [
-                "build/main.bundle.js"
-            ]
+            "matches": ["https://news.ycombinator.com/*"],
+            "js": ["build/main.bundle.js"]
         }
     ],
-    "manifest_version": 2
+    "icons": { "16": "icons/letter-h-icon-16.png", "48": "icons/letter-h-icon-48.png", "128": "icons/letter-h-icon-128.png" },
+    "manifest_version": 3
 }
