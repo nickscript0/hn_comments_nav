@@ -121,7 +121,7 @@ function findNodesWithWord(word: string): Array<Element> {
                 ? NodeFilter.FILTER_ACCEPT
                 : NodeFilter.FILTER_SKIP,
     };
-    const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, filter_by_word, false);
+    const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, filter_by_word);
 
     let n;
     const matched_nodes: Array<Element> = [];
