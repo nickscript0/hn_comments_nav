@@ -19,3 +19,18 @@ npm run build
 - [x] :closed_book: Fix: should disable shortcut keys when user is inputting text in a textbox
 - [x] :green_book: Highlight OP's name
 - [x] :closed_book: Add tag feature for a username, like RES has
+
+## Published Extension Text - Chrome Web Store
+### Description
+This extension provides tools for quickly navigating HN comment threads, maintaining your context in deep threads, and focusing on the commenters you value.
+
+Features and Keyboard Shortcuts:
+- Next comment (j), Previous comment (k)
+- Next same-level comment (Shift+j), Previous same-level comment (Shift+k)
+- Up a comment level forward (Shift+n), Up a comment level backward (Shift+m)
+- Next root-level comment (n), Previous root-level comment (m)
+- Show the current Parent comment inline (hold "p")
+- Hide or show the current comment and children (l)
+- Highlight the username of the current focused comment (h)
+- Highlight the current selection text (h)
+- Add a friend (permanently highlight a username with a note that persists on all pages) of the current focused comment (f)
