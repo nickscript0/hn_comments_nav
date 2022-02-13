@@ -1,6 +1,6 @@
 {
     "name": "HN Keyboard Nav",
-    "version": "0.2",
+    "version": "0.3",
     "description": "Navigate Hacker News (news.ycombinator.com) comment threads efficiently using the keyboard.",
     "content_scripts": [
         {
