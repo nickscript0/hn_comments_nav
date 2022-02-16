@@ -26,7 +26,7 @@ npm run build
 ### Description
 This extension provides tools for quickly navigating HN comment threads, maintaining your context in deep threads, and focusing on the commenters you value.
 
-Features and Keyboard Shortcuts:
+Features and Keyboard Shortcuts (available on HN Comments Pages):
 - Next comment (j), Previous comment (k)
 - Next same-level comment (Shift+j), Previous same-level comment (Shift+k)
 - Up a comment level forward (Shift+n), Up a comment level backward (Shift+m)
