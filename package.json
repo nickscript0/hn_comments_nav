@@ -27,6 +27,6 @@
         "typescript": "^4.1.2",
         "webpack": "^5.53.0",
         "webpack-cli": "^4.8.0",
-        "webpack-notifier": "github:nickscript0/webpack-notifier#f56a4218e264f5a489c6addaf69e4f20805b3465"
+        "webpack-notifier": "github:nickscript0/webpack-notifier#7de75b4463fae7234a6c9ef7df5f01e9777ab59c"
     }
 }
