@@ -24,3 +24,36 @@ export function getIndent(comment: Element): number {
     }
     return parseInt(indent);
 }
+
+export function getCommentAuthor(comment: HTMLElement): string | null {
+    const hnuser = comment.getElementsByClassName('hnuser');
+    if (hnuser.length > 0) {
+        const author = hnuser[0].textContent;
+        if (author !== null) {
+            // Could be cleaner but typescript wasn't allowing the type guard for the more concise version
+            return author.trim().toLowerCase();
+        }
+    }
+    return null;
+}
+
+export function hightlightUserThroughoutPage({
+    userName,
+    color,
+    fontWeight,
+    replaceName,
+}: {
+    userName: string;
+    color: string;
+    fontWeight?: string;
+    replaceName?: string;
+}) {
+    Array.from(document.getElementsByClassName('hnuser'))
+        .filter(e => e.textContent === userName)
+        .map(element => {
+            const html_element = <HTMLElement>element;
+            html_element.style.color = color;
+            if (fontWeight) html_element.style.fontWeight = fontWeight;
+            if (replaceName) html_element.textContent = replaceName;
+        });
+}

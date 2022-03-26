@@ -3,18 +3,15 @@
  */
 
 import { Nav } from './browser_nav';
+import { getCommentAuthor, hightlightUserThroughoutPage } from './hn_dom';
 
 export function highlight_op() {
     const subtext = document.getElementsByClassName('subtext');
     if (subtext.length === 0) return;
     const op_name = subtext[0].getElementsByClassName('hnuser')[0].textContent;
-    Array.from(document.getElementsByClassName('hnuser'))
-        .filter(e => e.textContent === op_name)
-        .map(element => {
-            const html_element = <HTMLElement>element;
-            html_element.style.color = '#42c135';
-            html_element.style.fontWeight = 'bold';
-        });
+    if (op_name) {
+        hightlightUserThroughoutPage({ userName: op_name, color: '#42c135', fontWeight: 'bold' });
+    }
 }
 
 export interface Highlight {
@@ -60,14 +57,7 @@ export class TextHighlight implements Highlight {
 
     private _getPostAuthor(): string | null {
         if (this.browserNav.currentElement) {
-            const hnuser = this.browserNav.currentElement.getElementsByClassName('hnuser');
-            if (hnuser.length > 0) {
-                const author = hnuser[0].textContent;
-                if (author !== null) {
-                    // Could be cleaner but typescript wasn't allowing the type guard for the more concise version
-                    return author.trim().toLowerCase();
-                }
-            }
+            return getCommentAuthor(this.browserNav.currentElement);
         }
         return null;
     }

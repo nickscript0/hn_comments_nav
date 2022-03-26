@@ -1,4 +1,4 @@
-import { getAllComments, getIndent } from './hn_dom';
+import { getAllComments, getIndent, getCommentAuthor, hightlightUserThroughoutPage } from './hn_dom';
 
 // No longer need this, can remove
 // declare function toggle(event: any, id: string);
@@ -16,6 +16,7 @@ export interface Nav {
     hideParent();
     toggleCollapseThread();
     readonly currentElement: HTMLElement | null;
+    // readonly threadParent: HTMLElement | null;
 }
 
 interface ConditionFunc {
@@ -49,36 +50,44 @@ export class BrowserNav implements Nav {
 
     public next() {
         this.position = _nextPosition(this.position, 1, p => p < this.all_comments.length, this.all_comments);
+        this._highlightThreadParent();
     }
 
     public previous() {
         this.position = _nextPosition(this.position, -1, p => p >= 0, this.all_comments);
+        this._highlightThreadParent();
     }
 
     public nextRoot() {
         this._advance(1, i => i < this.all_comments.length, _findNextRoot);
+        this._highlightThreadParent();
     }
 
     public previousRoot() {
         this._advance(-1, i => i >= 0, _findNextRoot);
+        this._highlightThreadParent();
     }
 
     public nextSameLevel() {
         this._advance(1, i => i < this.all_comments.length, _findNextAtLevel);
+        this._highlightThreadParent();
     }
 
     public previousSameLevel() {
         this._advance(-1, i => i >= 0, _findNextAtLevel);
+        this._highlightThreadParent();
     }
 
     public nextParent() {
         this._advance(1, i => i < this.all_comments.length, _findClosestParent);
+        this._highlightThreadParent();
     }
 
     public previousParent() {
         // Note _findImmediateParent could be replaced with _findClosestParent here as they are equivalent
         // (as all nodes should have an immediate parent)
         this._advance(-1, i => i >= 0, _findImmediateParent);
+        this._highlightThreadParent();
     }
 
     public showParent() {
@@ -116,10 +125,39 @@ export class BrowserNav implements Nav {
         return this.position !== null ? <HTMLElement>this.all_comments[this.position] : null;
     }
 
+    private get threadParent(): HTMLElement | null {
+        const current = this.currentElement;
+        if (current && this.position !== null) {
+            // If currently root
+            if (_nestLevel(current) === 0) {
+                return current;
+            } else {
+                const previousRootId = _findNextRoot(this.position, -1, i => i >= 0, this.all_comments);
+                return this.all_comments[previousRootId] as HTMLElement;
+            }
+        }
+        return null;
+    }
+
     private _advance(increment: number, boundary_func: ConditionFunc, finder_func: FinderFunc) {
         const incrementor =
             this.position !== null ? finder_func(this.position, increment, boundary_func, this.all_comments) : 0;
         this.position = _nextPosition(this.position, incrementor, boundary_func, this.all_comments);
+    }
+
+    private _highlightThreadParent() {
+        const threadParent = this.threadParent;
+        if (threadParent) {
+            const threadParentName = getCommentAuthor(threadParent);
+            if (threadParentName) {
+                const color = '#4682B4'; // SteelBlue
+                hightlightUserThroughoutPage({
+                    userName: threadParentName,
+                    color,
+                    replaceName: `${threadParentName} [Thread Parent]`,
+                });
+            }
+        }
     }
 }
 
@@ -249,6 +287,11 @@ function _findNearestTopCommentIndex(all_comments: HTMLCollectionOf<Element>): n
     return starting_index;
 }
 
+/**
+ * Returns the current level of nesting of the comment
+ * @param commentRow A comment row starting with <tr class="athing comtr" ...>
+ * @returns 0 for root, 1 for first child, 2 for second child, etc.
+ */
 function _nestLevel(commentRow: Element): number {
     // return commentRow.getElementsByTagName('table')[0].classList.length;
     return getIndent(commentRow);
