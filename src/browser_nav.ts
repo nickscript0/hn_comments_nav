@@ -16,7 +16,6 @@ export interface Nav {
     hideParent();
     toggleCollapseThread();
     readonly currentElement: HTMLElement | null;
-    // readonly threadParent: HTMLElement | null;
 }
 
 interface ConditionFunc {
@@ -133,7 +132,7 @@ export class BrowserNav implements Nav {
                 return current;
             } else {
                 const previousRootId = _findNextRoot(this.position, -1, i => i >= 0, this.all_comments);
-                return this.all_comments[previousRootId] as HTMLElement;
+                return this.all_comments[this.position + previousRootId] as HTMLElement;
             }
         }
         return null;
@@ -151,12 +150,20 @@ export class BrowserNav implements Nav {
             const threadParentName = getCommentAuthor(threadParent);
             if (threadParentName) {
                 const color = '#4682B4'; // SteelBlue
+                console.log(`_highlightThreadParent: Tagging ${threadParentName} as TP`);
                 hightlightUserThroughoutPage({
                     userName: threadParentName,
-                    color,
-                    replaceName: `${threadParentName} [Thread Parent]`,
+                    addTag: {
+                        text: '[RTP]',
+                        style: { color, fontWeight: 'bold' },
+                        class: 'hn-keynav-rtp',
+                    },
                 });
+            } else {
+                console.log(`_highlightThreadParent: No thread parent name`);
             }
+        } else {
+            console.log(`_highlightThreadParent: No thread parent found for current element`);
         }
     }
 }
@@ -252,6 +259,9 @@ function _findNextAtLevel(
     return _findNextComment(current_position, incrementor, sameParentOrDescendant, not_at_level, all_comments);
 }
 
+/**
+ * Returns the relative position of the next comment, e.g. -5 means 5 comments back, 5 means 5 comments forward
+ */
 function _findNextComment(
     current_position: number,
     incrementor: number,

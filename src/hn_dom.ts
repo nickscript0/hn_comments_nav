@@ -41,19 +41,36 @@ export function hightlightUserThroughoutPage({
     userName,
     color,
     fontWeight,
-    replaceName,
+    addTag,
 }: {
     userName: string;
-    color: string;
+    color?: string;
     fontWeight?: string;
-    replaceName?: string;
+    addTag?: {
+        text: string;
+        style: Partial<CSSStyleDeclaration>;
+        class: string;
+    };
 }) {
+    // Remove pre-existing matching class so we don't duplicate
+    // TODO: maybe it's more efficient to check that exists and skip instead
+    if (addTag) document.querySelectorAll(`.${addTag.class}`).forEach(e => e.remove());
+
     Array.from(document.getElementsByClassName('hnuser'))
         .filter(e => e.textContent === userName)
         .map(element => {
             const html_element = <HTMLElement>element;
-            html_element.style.color = color;
+            if (color) html_element.style.color = color;
             if (fontWeight) html_element.style.fontWeight = fontWeight;
-            if (replaceName) html_element.textContent = replaceName;
+            if (addTag) {
+                const tag = document.createElement('span');
+                tag.className = addTag.class;
+                tag.textContent = addTag.text;
+                for (const [key, value] of Object.entries(addTag.style)) {
+                    tag.style[key] = value;
+                }
+                // html_element.appendChild(tag);
+                html_element.insertAdjacentElement('afterend', tag);
+            }
         });
 }
