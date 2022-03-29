@@ -31,7 +31,7 @@ export class TextHighlight implements Highlight {
     }
 
     add() {
-        const selection = window.getSelection()?.toString().trim().toLowerCase();
+        const selection = window.getSelection()?.toString().trim();
         // If no text is selected highlight the author name of the current comment
         const word = selection !== '' ? selection : this._getPostAuthor();
         if (word !== null && word !== undefined && !this.words.has(word)) {
@@ -73,7 +73,7 @@ export class TextHighlight implements Highlight {
  */
 function createHighlightNodeTrio(word: string, original_node: Element, highlight_colour: string): boolean {
     if (original_node.textContent === null) return false;
-    const word_index = original_node.textContent.toLowerCase().indexOf(word);
+    const word_index = original_node.textContent.indexOf(word);
     if (word_index === -1) return false;
 
     // Build 3 new nodes to replace the original_node:
@@ -103,6 +103,7 @@ function createHighlightNodeTrio(word: string, original_node: Element, highlight
  * @returns {Array<Element>} the list of matched nodes
  */
 function findNodesWithWord(word: string): Array<Element> {
+    word = word.toLowerCase();
     if (word === '') return [];
 
     const filter_by_word: NodeFilter = {

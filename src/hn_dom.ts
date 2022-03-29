@@ -31,7 +31,7 @@ export function getCommentAuthor(comment: HTMLElement): string | null {
         const author = hnuser[0].textContent;
         if (author !== null) {
             // Could be cleaner but typescript wasn't allowing the type guard for the more concise version
-            return author.trim().toLowerCase();
+            return author.trim(); //.toLowerCase();
         }
     }
     return null;
@@ -41,13 +41,39 @@ export function hightlightUserThroughoutPage({
     userName,
     color,
     fontWeight,
-    addTag,
 }: {
     userName: string;
     color?: string;
     fontWeight?: string;
+}) {
+    Array.from(document.getElementsByClassName('hnuser'))
+        .filter(e => e.textContent === userName)
+        .map(element => {
+            const html_element = <HTMLElement>element;
+            if (color) html_element.style.color = color;
+            if (fontWeight) html_element.style.fontWeight = fontWeight;
+        });
+}
+
+// TODO: compare perf of
+/**
+ * 1. single loop: single querySelectorAll of comments, then parent.firstChild delete
+ * 2. multi loop: querySelectorAll delete classes, then querySelectorAll of comments to add
+ * 3. single loop: single getElementsByClassName of comments, then parent.firstChild delete
+ * 4. multi loop: getElementsbyClassName delete classes, then getElementsbyClassName of comments to add
+ * As per this good comparison of the two functions https://dev.to/wlytle/performance-tradeoffs-of-queryselector-and-queryselectorall-1074
+ */
+
+export function tagUsersThroughoutPage({
+    userNames,
+    color,
+    fontWeight,
+    addTag,
+}: {
+    userNames: string[];
+    color?: string;
+    fontWeight?: string;
     addTag?: {
-        text: string;
         style: Partial<CSSStyleDeclaration>;
         class: string;
     };
@@ -57,15 +83,16 @@ export function hightlightUserThroughoutPage({
     if (addTag) document.querySelectorAll(`.${addTag.class}`).forEach(e => e.remove());
 
     Array.from(document.getElementsByClassName('hnuser'))
-        .filter(e => e.textContent === userName)
+        .filter(e => e.textContent && userNames.includes(e.textContent))
         .map(element => {
-            const html_element = <HTMLElement>element;
+            const html_element = element as HTMLElement;
+            const userName = html_element.textContent as string;
             if (color) html_element.style.color = color;
             if (fontWeight) html_element.style.fontWeight = fontWeight;
             if (addTag) {
                 const tag = document.createElement('span');
                 tag.className = addTag.class;
-                tag.textContent = addTag.text;
+                tag.textContent = tagText(userNames.indexOf(userName));
                 for (const [key, value] of Object.entries(addTag.style)) {
                     tag.style[key] = value;
                 }
@@ -73,4 +100,8 @@ export function hightlightUserThroughoutPage({
                 html_element.insertAdjacentElement('afterend', tag);
             }
         });
+}
+
+function tagText(index: number) {
+    return `GP${index}`;
 }

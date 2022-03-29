@@ -1,4 +1,4 @@
-import { getAllComments, getIndent, getCommentAuthor, hightlightUserThroughoutPage } from './hn_dom';
+import { getAllComments, getIndent, getCommentAuthor, tagUsersThroughoutPage } from './hn_dom';
 
 // No longer need this, can remove
 // declare function toggle(event: any, id: string);
@@ -145,25 +145,17 @@ export class BrowserNav implements Nav {
     }
 
     private _highlightThreadParent() {
-        const threadParent = this.threadParent;
-        if (threadParent) {
-            const threadParentName = getCommentAuthor(threadParent);
-            if (threadParentName) {
-                const color = '#4682B4'; // SteelBlue
-                console.log(`_highlightThreadParent: Tagging ${threadParentName} as TP`);
-                hightlightUserThroughoutPage({
-                    userName: threadParentName,
-                    addTag: {
-                        text: '[RTP]',
-                        style: { color, fontWeight: 'bold' },
-                        class: 'hn-keynav-rtp',
-                    },
-                });
-            } else {
-                console.log(`_highlightThreadParent: No thread parent name`);
-            }
-        } else {
-            console.log(`_highlightThreadParent: No thread parent found for current element`);
+        if (this.position !== null) {
+            const chain = _getImmediateParentChain(this.position, this.all_comments);
+            const color = '#4682B4'; // SteelBlue
+            console.log(`_highlightThreadParent: Tagging chain ${chain}`);
+            tagUsersThroughoutPage({
+                userNames: chain,
+                addTag: {
+                    style: { color, fontWeight: 'bold', paddingLeft: '4px' },
+                    class: 'hn-keynav-rtp',
+                },
+            });
         }
     }
 }
@@ -214,6 +206,32 @@ function _findImmediateParent(
     const isImmediateParent = i => _nestLevel(all_comments[i]) !== currentNestLevel - 1;
 
     return _findNextComment(current_position, incrementor, boundary_func, isImmediateParent, all_comments);
+}
+
+/**
+ * Finds the immediate parent chain from the current element to the root
+ * @param startPosition the start index in the allComments array
+ * @param allComments the array of comment elements
+ * @returns the chain of usernames as: [root-username, firstChild-username, secondChild-username, ...]
+ */
+function _getImmediateParentChain(startPosition: number, allComments: HTMLCollectionOf<Element>): string[] {
+    const isRoot = (el: Element) => _nestLevel(el) === 0;
+    let immediateParentI = _findImmediateParent(startPosition, -1, i => i >= 0, allComments);
+    startPosition += immediateParentI;
+    const chain: Element[] = [];
+    console.log('startPosition', startPosition);
+    while (!isRoot(allComments[startPosition])) {
+        chain.push(allComments[startPosition]);
+        immediateParentI = _findImmediateParent(startPosition, -1, i => i >= 0, allComments);
+        startPosition += immediateParentI;
+        console.log('startPosition', startPosition);
+    }
+    // Add the root
+    chain.push(allComments[startPosition]);
+    return chain
+        .reverse()
+        .map(getCommentAuthor)
+        .filter((a): a is string => a !== null);
 }
 
 // Similar to 'findImmediateParent' but continues searching past one level up all the way until the root

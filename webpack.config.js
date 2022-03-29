@@ -21,8 +21,8 @@ module.exports = {
             { test: /\.tsx?$/, loader: 'ts-loader' },
         ],
     },
-    mode: 'production',
+    // mode: 'production',
     // Comment in for source maps
-    // mode: 'development',
-    // devtool: 'source-map'
+    mode: 'development',
+    devtool: 'source-map'
 };
