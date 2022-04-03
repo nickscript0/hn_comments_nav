@@ -33,10 +33,11 @@ export class TextHighlight implements Highlight {
     add() {
         const selection = window.getSelection()?.toString().trim();
         // If no text is selected highlight the author name of the current comment
-        const word = selection !== '' ? selection : this._getPostAuthor();
+        const highlightAuthor = selection === '';
+        const word = highlightAuthor ? this._getPostAuthor() : selection;
         if (word !== null && word !== undefined && !this.words.has(word)) {
             this.words.add(word);
-            this._highlightWord(word);
+            this._highlightWord(word, !highlightAuthor);
             console.log('words is ', JSON.stringify(Array.from(this.words)));
         }
     }
@@ -45,11 +46,11 @@ export class TextHighlight implements Highlight {
         this.words.clear();
     }
 
-    private _highlightWord(word: string) {
+    private _highlightWord(word: string, ignoreCase: boolean) {
         let highlight_count = 0;
         const highlight_colour = this.colour.next();
-        findNodesWithWord(word).forEach(n => {
-            if (createHighlightNodeTrio(word, n, highlight_colour)) highlight_count++;
+        findNodesWithWord(word, ignoreCase).forEach(n => {
+            if (createHighlightNodeTrio(word, n, highlight_colour, ignoreCase)) highlight_count++;
         });
 
         console.log(`Highlighted ${word} ${highlight_count} times`);
@@ -71,9 +72,17 @@ export class TextHighlight implements Highlight {
  * @param {string} highlight_colour the colour to highlight
  * @returns {boolean} true if match found and word highlighted, false otherwise
  */
-function createHighlightNodeTrio(word: string, original_node: Element, highlight_colour: string): boolean {
+function createHighlightNodeTrio(
+    word: string,
+    original_node: Element,
+    highlight_colour: string,
+    ignoreCase: boolean
+): boolean {
     if (original_node.textContent === null) return false;
-    const word_index = original_node.textContent.indexOf(word);
+    if (ignoreCase) word = word.toLowerCase();
+    const word_index = ignoreCase
+        ? original_node.textContent.toLowerCase().indexOf(word)
+        : original_node.textContent.indexOf(word);
     if (word_index === -1) return false;
 
     // Build 3 new nodes to replace the original_node:
@@ -102,13 +111,13 @@ function createHighlightNodeTrio(word: string, original_node: Element, highlight
  * @param {string} word a string to match
  * @returns {Array<Element>} the list of matched nodes
  */
-function findNodesWithWord(word: string): Array<Element> {
-    word = word.toLowerCase();
+function findNodesWithWord(word: string, ignoreCase: boolean): Array<Element> {
     if (word === '') return [];
+    if (ignoreCase) word = word.toLowerCase();
 
     const filter_by_word: NodeFilter = {
         acceptNode: n =>
-            n.textContent && n.textContent.toLowerCase().indexOf(word) !== -1
+            n.textContent && (ignoreCase ? n.textContent.toLowerCase() : n.textContent).indexOf(word) !== -1
                 ? NodeFilter.FILTER_ACCEPT
                 : NodeFilter.FILTER_SKIP,
     };
