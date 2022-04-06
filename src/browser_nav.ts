@@ -216,13 +216,11 @@ function _findImmediateParent(
  */
 function _getImmediateParentChain(startPosition: number, allComments: HTMLCollectionOf<Element>): string[] {
     const isRoot = (el: Element) => _nestLevel(el) === 0;
-    let immediateParentI = _findImmediateParent(startPosition, -1, i => i >= 0, allComments);
-    startPosition += immediateParentI;
     const chain: Element[] = [];
     console.log('startPosition', startPosition);
     while (!isRoot(allComments[startPosition])) {
         chain.push(allComments[startPosition]);
-        immediateParentI = _findImmediateParent(startPosition, -1, i => i >= 0, allComments);
+        const immediateParentI = _findImmediateParent(startPosition, -1, i => i >= 0, allComments);
         startPosition += immediateParentI;
         console.log('startPosition', startPosition);
     }
