@@ -1,4 +1,13 @@
-import { getAllComments, getIndent, getCommentAuthor, tagUsersThroughoutPage } from './hn_dom';
+import {
+    getAllComments,
+    getIndent,
+    getCommentAuthor,
+    // tagUsersThroughoutPage,
+    tutpQuerySelectorAll2Loop,
+    tutpGetElementsByClassname2Loop,
+    tutpGetElementsByClassname1Loop,
+    tutpQuerySelectorAll1Loop,
+} from './hn_dom';
 
 // No longer need this, can remove
 // declare function toggle(event: any, id: string);
@@ -149,15 +158,44 @@ export class BrowserNav implements Nav {
             const chain = _getImmediateParentChain(this.position, this.all_comments);
             const color = '#4682B4'; // SteelBlue
             console.log(`_highlightThreadParent: Tagging chain ${chain}`);
-            tagUsersThroughoutPage({
+            tutpQuerySelectorAll2Loop({
                 userNames: chain,
                 addTag: {
                     style: { color, fontWeight: 'bold', paddingLeft: '4px' },
                     class: 'hn-keynav-rtp',
                 },
             });
+
+            profile(chain, color);
         }
     }
+}
+
+// DEBUG, remove when profiled
+function profile(chain: string[], color: string) {
+    const args = {
+        userNames: chain,
+        addTag: {
+            style: { color, fontWeight: 'bold', paddingLeft: '4px' },
+            class: 'hn-keynav-rtp',
+        },
+    };
+
+    console.time('tutpQuerySelectorAll1Loop');
+    tutpQuerySelectorAll1Loop(args);
+    console.timeEnd('tutpQuerySelectorAll1Loop');
+
+    console.time('tutpGetElementsByClassname2Loop');
+    tutpGetElementsByClassname2Loop(args);
+    console.timeEnd('tutpGetElementsByClassname2Loop');
+
+    console.time('tutpQuerySelectorAll2Loop');
+    tutpQuerySelectorAll2Loop(args);
+    console.timeEnd('tutpQuerySelectorAll2Loop');
+
+    console.time('tutpGetElementsByClassname1Loop');
+    tutpGetElementsByClassname1Loop(args);
+    console.timeEnd('tutpGetElementsByClassname1Loop');
 }
 
 function _nextPosition(
@@ -217,12 +255,10 @@ function _findImmediateParent(
 function _getImmediateParentChain(startPosition: number, allComments: HTMLCollectionOf<Element>): string[] {
     const isRoot = (el: Element) => _nestLevel(el) === 0;
     const chain: Element[] = [];
-    console.log('startPosition', startPosition);
     while (!isRoot(allComments[startPosition])) {
         chain.push(allComments[startPosition]);
         const immediateParentI = _findImmediateParent(startPosition, -1, i => i >= 0, allComments);
         startPosition += immediateParentI;
-        console.log('startPosition', startPosition);
     }
     // Add the root
     chain.push(allComments[startPosition]);

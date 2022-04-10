@@ -57,14 +57,18 @@ export function hightlightUserThroughoutPage({
 
 // TODO: compare perf of
 /**
- * 1. single loop: single querySelectorAll of comments, then parent.firstChild delete
- * 2. multi loop: querySelectorAll delete classes, then querySelectorAll of comments to add
- * 3. single loop: single getElementsByClassName of comments, then parent.firstChild delete
- * 4. multi loop: getElementsbyClassName delete classes, then getElementsbyClassName of comments to add
+ * Algos:
+ * 1. 1 loop: single querySelectorAll of comments, then parent.firstChild delete
+ * 2. 2 loop: querySelectorAll delete classes, then querySelectorAll of comments to add
+ * 3. 1 loop: single getElementsByClassName of comments, then parent.firstChild delete
+ * 4. 2 loop: getElementsbyClassName delete classes, then getElementsbyClassName of comments to add
  * As per this good comparison of the two functions https://dev.to/wlytle/performance-tradeoffs-of-queryselector-and-queryselectorall-1074
+ *
+ * RESULTS: Apr 10, 3:26pm
+ * tutpQuerySelectorAll2Loop consistently fastest by ~0.1-0.2 ms. This is explained by 2 slow queries, then fast accesses on each
  */
 
-export function tagUsersThroughoutPage({
+export function tutpQuerySelectorAll2Loop({
     userNames,
     color,
     fontWeight,
@@ -73,7 +77,7 @@ export function tagUsersThroughoutPage({
     userNames: string[];
     color?: string;
     fontWeight?: string;
-    addTag?: {
+    addTag: {
         style: Partial<CSSStyleDeclaration>;
         class: string;
     };
@@ -82,26 +86,110 @@ export function tagUsersThroughoutPage({
     // TODO: maybe it's more efficient to check that exists and skip instead
     if (addTag) document.querySelectorAll(`.${addTag.class}`).forEach(e => e.remove());
 
-    function tagText(index: number) {
-        return `GP${index}`;
-    }
+    Array.from(document.querySelectorAll('.hnuser'))
+        .filter(e => e.textContent && userNames.includes(e.textContent))
+        .map(element => {
+            _insertTag(userNames, element, color, fontWeight, addTag);
+        });
+}
+
+export function tutpGetElementsByClassname2Loop({
+    userNames,
+    color,
+    fontWeight,
+    addTag,
+}: {
+    userNames: string[];
+    color?: string;
+    fontWeight?: string;
+    addTag: {
+        style: Partial<CSSStyleDeclaration>;
+        class: string;
+    };
+}) {
+    // Remove pre-existing matching class so we don't duplicate
+    // TODO: maybe it's more efficient to check that exists and skip instead
+    if (addTag) Array.from(document.getElementsByClassName(`${addTag.class}`)).forEach(e => e.remove());
 
     Array.from(document.getElementsByClassName('hnuser'))
         .filter(e => e.textContent && userNames.includes(e.textContent))
         .map(element => {
-            const html_element = element as HTMLElement;
-            const userName = html_element.textContent as string;
-            if (color) html_element.style.color = color;
-            if (fontWeight) html_element.style.fontWeight = fontWeight;
-            if (addTag) {
-                const tag = document.createElement('span');
-                tag.className = addTag.class;
-                tag.textContent = tagText(userNames.indexOf(userName));
-                for (const [key, value] of Object.entries(addTag.style)) {
-                    tag.style[key] = value;
-                }
-                // html_element.appendChild(tag);
-                html_element.insertAdjacentElement('afterend', tag);
-            }
+            _insertTag(userNames, element, color, fontWeight, addTag);
         });
+}
+
+/**
+ *
+ * Cosnistently fastest algo by 0.1 - 0.5ms on several HN pages.
+ */
+export function tutpQuerySelectorAll1Loop({
+    userNames,
+    color,
+    fontWeight,
+    addTag,
+}: {
+    userNames: string[];
+    color?: string;
+    fontWeight?: string;
+    addTag: {
+        style: Partial<CSSStyleDeclaration>;
+        class: string;
+    };
+}) {
+    for (const element of Array.from(document.querySelectorAll('.hnuser'))) {
+        element.parentElement?.querySelector(`.${addTag?.class}`)?.remove();
+
+        if (element.textContent && userNames.includes(element.textContent)) {
+            _insertTag(userNames, element, color, fontWeight, addTag);
+        }
+    }
+}
+
+export function tutpGetElementsByClassname1Loop({
+    userNames,
+    color,
+    fontWeight,
+    addTag,
+}: {
+    userNames: string[];
+    color?: string;
+    fontWeight?: string;
+    addTag: {
+        style: Partial<CSSStyleDeclaration>;
+        class: string;
+    };
+}) {
+    for (const element of Array.from(document.getElementsByClassName('hnuser'))) {
+        element.parentElement?.getElementsByClassName(`${addTag?.class}`)?.[0]?.remove();
+
+        if (element.textContent && userNames.includes(element.textContent)) {
+            _insertTag(userNames, element, color, fontWeight, addTag);
+        }
+    }
+}
+
+function _insertTag(
+    userNames: string[],
+    element: Element,
+    color: string | undefined,
+    fontWeight: string | undefined,
+    addTag: {
+        style: Partial<CSSStyleDeclaration>;
+        class: string;
+    }
+) {
+    const html_element = element as HTMLElement;
+    const userName = html_element.textContent as string;
+    if (color) html_element.style.color = color;
+    if (fontWeight) html_element.style.fontWeight = fontWeight;
+    if (addTag) {
+        const tag = document.createElement('span');
+        tag.className = addTag.class;
+        tag.textContent = `GP${userNames.indexOf(userName)}`;
+        for (const [key, value] of Object.entries(addTag.style)) {
+            tag.style[key] = value;
+        }
+        // html_element.appendChild(tag);
+        html_element.insertAdjacentElement('afterend', tag);
+    }
 }
