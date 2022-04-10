@@ -82,6 +82,10 @@ export function tagUsersThroughoutPage({
     // TODO: maybe it's more efficient to check that exists and skip instead
     if (addTag) document.querySelectorAll(`.${addTag.class}`).forEach(e => e.remove());
 
+    function tagText(index: number) {
+        return `GP${index}`;
+    }
+
     Array.from(document.getElementsByClassName('hnuser'))
         .filter(e => e.textContent && userNames.includes(e.textContent))
         .map(element => {
@@ -100,8 +104,4 @@ export function tagUsersThroughoutPage({
                 html_element.insertAdjacentElement('afterend', tag);
             }
         });
-}
-
-function tagText(index: number) {
-    return `GP${index}`;
 }
