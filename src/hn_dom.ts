@@ -57,7 +57,7 @@ export function hightlightUserThroughoutPage({
 
 // TODO: compare perf of
 /**
- * Algos:
+ * ***** PERFORMANCE COMPARISON querySelectorAll vs getElementsByClassName *****
  * 1. 1 loop: single querySelectorAll of comments, then parent.firstChild delete
  * 2. 2 loop: querySelectorAll delete classes, then querySelectorAll of comments to add
  * 3. 1 loop: single getElementsByClassName of comments, then parent.firstChild delete
@@ -66,9 +66,12 @@ export function hightlightUserThroughoutPage({
  *
  * RESULTS: Apr 10, 3:26pm
  * tutpQuerySelectorAll2Loop consistently fastest by ~0.1-0.2 ms. This is explained by 2 slow queries, then fast accesses on each
+ *
+ * ***** PERFORMANCE COMPARISON map, forEach, for of *****
+ * No noticeable difference
  */
 
-export function tutpQuerySelectorAll2Loop({
+export function tagUsersThroughoutPage({
     userNames,
     color,
     fontWeight,
@@ -86,82 +89,7 @@ export function tutpQuerySelectorAll2Loop({
     // TODO: maybe it's more efficient to check that exists and skip instead
     if (addTag) document.querySelectorAll(`.${addTag.class}`).forEach(e => e.remove());
 
-    Array.from(document.querySelectorAll('.hnuser'))
-        .filter(e => e.textContent && userNames.includes(e.textContent))
-        .map(element => {
-            _insertTag(userNames, element, color, fontWeight, addTag);
-        });
-}
-
-export function tutpGetElementsByClassname2Loop({
-    userNames,
-    color,
-    fontWeight,
-    addTag,
-}: {
-    userNames: string[];
-    color?: string;
-    fontWeight?: string;
-    addTag: {
-        style: Partial<CSSStyleDeclaration>;
-        class: string;
-    };
-}) {
-    // Remove pre-existing matching class so we don't duplicate
-    // TODO: maybe it's more efficient to check that exists and skip instead
-    if (addTag) Array.from(document.getElementsByClassName(`${addTag.class}`)).forEach(e => e.remove());
-
-    Array.from(document.getElementsByClassName('hnuser'))
-        .filter(e => e.textContent && userNames.includes(e.textContent))
-        .map(element => {
-            _insertTag(userNames, element, color, fontWeight, addTag);
-        });
-}
-
-/**
- *
- * Cosnistently fastest algo by 0.1 - 0.5ms on several HN pages.
- */
-export function tutpQuerySelectorAll1Loop({
-    userNames,
-    color,
-    fontWeight,
-    addTag,
-}: {
-    userNames: string[];
-    color?: string;
-    fontWeight?: string;
-    addTag: {
-        style: Partial<CSSStyleDeclaration>;
-        class: string;
-    };
-}) {
     for (const element of Array.from(document.querySelectorAll('.hnuser'))) {
-        element.parentElement?.querySelector(`.${addTag?.class}`)?.remove();
-
-        if (element.textContent && userNames.includes(element.textContent)) {
-            _insertTag(userNames, element, color, fontWeight, addTag);
-        }
-    }
-}
-
-export function tutpGetElementsByClassname1Loop({
-    userNames,
-    color,
-    fontWeight,
-    addTag,
-}: {
-    userNames: string[];
-    color?: string;
-    fontWeight?: string;
-    addTag: {
-        style: Partial<CSSStyleDeclaration>;
-        class: string;
-    };
-}) {
-    for (const element of Array.from(document.getElementsByClassName('hnuser'))) {
-        element.parentElement?.getElementsByClassName(`${addTag?.class}`)?.[0]?.remove();
-
         if (element.textContent && userNames.includes(element.textContent)) {
             _insertTag(userNames, element, color, fontWeight, addTag);
         }
