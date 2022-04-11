@@ -58,10 +58,10 @@ export function hightlightUserThroughoutPage({
 // TODO: compare perf of
 /**
  * ***** PERFORMANCE COMPARISON querySelectorAll vs getElementsByClassName *****
- * 1. 1 loop: single querySelectorAll of comments, then parent.firstChild delete
- * 2. 2 loop: querySelectorAll delete classes, then querySelectorAll of comments to add
- * 3. 1 loop: single getElementsByClassName of comments, then parent.firstChild delete
- * 4. 2 loop: getElementsbyClassName delete classes, then getElementsbyClassName of comments to add
+ * 1. 1 loop: single querySelectorAll('hnuser') all comments, then inside loop element.querySelectorAll(addClass) delete if exists, then add
+ * 2. 2 loop: querySelectorAll(addClass) delete if exists, then querySelectorAll('hnuser') all comments add tag if username matches
+ * 3. 1 loop: single getElementsByClassName('hnuser') all comments, then inside loop element.getElementsByClassName(addClass) delete if exists, then add
+ * 4. 2 loop: getElementsbyClassName(addClass) delete if exists, then getElementsbyClassName('hnuser') all comments add tag if username matches
  * As per this good comparison of the two functions https://dev.to/wlytle/performance-tradeoffs-of-queryselector-and-queryselectorall-1074
  *
  * RESULTS: Apr 10, 3:26pm
@@ -86,7 +86,6 @@ export function tagUsersThroughoutPage({
     };
 }) {
     // Remove pre-existing matching class so we don't duplicate
-    // TODO: maybe it's more efficient to check that exists and skip instead
     if (addTag) document.querySelectorAll(`.${addTag.class}`).forEach(e => e.remove());
 
     for (const element of Array.from(document.querySelectorAll('.hnuser'))) {
