@@ -149,13 +149,14 @@ export class BrowserNav implements Nav {
             const chain = _getImmediateParentChain(this.position, this.all_comments);
             const color = '#4682B4'; // SteelBlue
             console.log(`_highlightThreadParent: Tagging chain ${chain}`);
-            tagUsersThroughoutPage({
+            const args = {
                 userNames: chain,
                 addTag: {
                     style: { color, fontWeight: 'bold', paddingLeft: '4px' },
                     class: 'hn-keynav-rtp',
                 },
-            });
+            };
+            tagUsersThroughoutPage(args);
         }
     }
 }

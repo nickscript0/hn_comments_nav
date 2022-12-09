@@ -55,28 +55,41 @@ export function hightlightUserThroughoutPage({
         });
 }
 
-// TODO: compare perf of
 /**
- * ***** PERFORMANCE COMPARISON querySelectorAll vs getElementsByClassName *****
- * 1. 1 loop: single querySelectorAll('hnuser') all comments, then inside loop element.querySelectorAll(addClass) delete if exists, then add
- * 2. 2 loop: querySelectorAll(addClass) delete if exists, then querySelectorAll('hnuser') all comments add tag if username matches
- * 3. 1 loop: single getElementsByClassName('hnuser') all comments, then inside loop element.getElementsByClassName(addClass) delete if exists, then add
- * 4. 2 loop: getElementsbyClassName(addClass) delete if exists, then getElementsbyClassName('hnuser') all comments add tag if username matches
+ * tagUsersThroughPage (TUTP) Optimization History:
+ *
+ * Optimization 1: Apr 10, 2022 (Switched to this one)
+ * Compare querySelectorAll vs getElementsByClassName:
+ *  1. 1 loop: single querySelectorAll('hnuser') all comments, then inside loop element.querySelectorAll(addClass) delete if exists, then add
+ *  2. 2 loop: querySelectorAll(addClass) delete if exists, then querySelectorAll('hnuser') all comments add tag if username matches
+ *  3. 1 loop: single getElementsByClassName('hnuser') all comments, then inside loop element.getElementsByClassName(addClass) delete if exists, then add
+ *  4. 2 loop: getElementsbyClassName(addClass) delete if exists, then getElementsbyClassName('hnuser') all comments add tag if username matches
  * As per this good comparison of the two functions https://dev.to/wlytle/performance-tradeoffs-of-queryselector-and-queryselectorall-1074
+ * CONCLUSION: tutpQuerySelectorAll2Loop (Algo #2) consistently fastest by ~0.1-0.2 ms. This is explained by 2 slow queries, then fast accesses on each
  *
- * RESULTS: Apr 10, 3:26pm
- * tutpQuerySelectorAll2Loop consistently fastest by ~0.1-0.2 ms. This is explained by 2 slow queries, then fast accesses on each
+ * Optimization 2: Apr 10, 2022 (Didn't change anything)
+ * Compare looping with: map, forEach, for of
+ * CONCLUSION: No noticeable difference
  *
- * ***** PERFORMANCE COMPARISON map, forEach, for of *****
- * No noticeable difference
+ * Optimization 3: Apr 12, 2022 (Didn't switch to this one)
+ * Changing the algo to
+ *  - A single querySelectorAll('.hnuser') and looping over each element
+ *  - Adding the delete to this single loop: `if (sibling?.className === addTag.class) sibling.remove();`
+ * CONCLUSION: Improved the perf by ~0.1ms, but this adds a dependency on the tagClass always being the nextSibling, so I didn't implement it
  */
 
-export function tagUsersThroughoutPage({
-    userNames,
-    color,
-    fontWeight,
-    addTag,
-}: {
+export function tagUsersThroughoutPage({ userNames, color, fontWeight, addTag }: TUTPArgs) {
+    // Remove pre-existing matching class so we don't duplicate
+    document.querySelectorAll(`.${addTag.class}`).forEach(e => e.remove());
+
+    for (const element of Array.from(document.querySelectorAll('.hnuser'))) {
+        if (element.textContent && userNames.includes(element.textContent)) {
+            _insertTag(userNames, element, color, fontWeight, addTag);
+        }
+    }
+}
+
+interface TUTPArgs {
     userNames: string[];
     color?: string;
     fontWeight?: string;
@@ -84,15 +97,6 @@ export function tagUsersThroughoutPage({
         style: Partial<CSSStyleDeclaration>;
         class: string;
     };
-}) {
-    // Remove pre-existing matching class so we don't duplicate
-    if (addTag) document.querySelectorAll(`.${addTag.class}`).forEach(e => e.remove());
-
-    for (const element of Array.from(document.querySelectorAll('.hnuser'))) {
-        if (element.textContent && userNames.includes(element.textContent)) {
-            _insertTag(userNames, element, color, fontWeight, addTag);
-        }
-    }
 }
 
 function _insertTag(
@@ -119,4 +123,35 @@ function _insertTag(
         // html_element.appendChild(tag);
         html_element.insertAdjacentElement('afterend', tag);
     }
+}
+
+/**
+ * Use this for profiling different dom manipulation methods
+ * @param userNames
+ * @param addTag
+ */
+export function profile(args: TUTPArgs) {
+    const ITERATION = 600;
+
+    const funcs = [
+        { name: 'orig', func: tagUsersThroughoutPage },
+        // { name: 'singleQuerySelectorAll', func: tagUsersThroughoutPageSingleQuerySelectorAll },
+        // {
+        //     name: 'singleGetElementsByClass',
+        //     func: tagUsersThroughoutPageSingleGetElementsByClass,
+        // },
+    ];
+
+    const results: string[] = [];
+
+    for (const { name, func } of funcs) {
+        const start = performance.now();
+        for (let i = 0; i < ITERATION; i++) {
+            func(args);
+        }
+        const end = performance.now();
+        results.push(`${name}: ${((end - start) / ITERATION).toFixed(2)} ms`);
+    }
+    results.unshift(`${ITERATION} iterations`);
+    console.log(results.join('\n'));
 }
