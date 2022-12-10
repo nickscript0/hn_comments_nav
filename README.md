@@ -36,3 +36,4 @@ Features and Keyboard Shortcuts (available on HN Comments Pages):
 - Highlight the username of the current focused comment (h)
 - Highlight the current selection text (h)
 - Add a friend (permanently highlight a username with a note that persists on all pages) of the current focused comment (f)
+- Copy the post title and url in adoc format (Ctrl+Shift+X)
