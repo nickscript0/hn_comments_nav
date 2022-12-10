@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <style>
+            html {
+                min-height: 800px;
+                min-width: 600px;
+                background-color: rgba(51, 51, 51, 0.8);
+            }
+            .keyboard-shortcut-overlay {
+                /* Make the overlay take up the full screen */
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+
+                /* Style the overlay */
+                /* background-color: rgba(0, 0, 0, 0.8); */
+                /* background-color: rgba(51, 51, 51, 0.8); */
+                margin: 20px;
+                color: #fff;
+                font-size: 13px;
+                text-align: left;
+
+                /* Hide the overlay by default */
+                display: block;
+            }
+
+            /* Show the overlay when the user presses the "?" key */
+            .keyboard-shortcut-overlay:target {
+                display: block;
+            }
+
+            /* Style the keyboard shortcut keys */
+            .keyboard-shortcut-overlay .key {
+                display: inline-block;
+                padding: 8px;
+                margin: 4px;
+                background-color: #333;
+                border-radius: 4px;
+            }
+
+            /* Style the keyboard shortcut descriptions */
+            .keyboard-shortcut-overlay .description {
+                /* margin: 8px 0; */
+                display: inline-block;
+            }
+
+            .keyboard-shortcut-overlay .row {
+                display: block;
+                margin-top: 4px;
+            }
+        </style>
+    </head>
+
+    <!-- Create the keyboard shortcut overlay -->
+    <div class="keyboard-shortcut-overlay" id="keyboard-shortcut-overlay">
+        <h1 style="text-align: center">HN Keyboard Nav - Keyboard Shortcuts</h1>
+        <div class="row">
+            <div class="key">j</div>
+            <div class="description">Next comment</div>
+            <div class="key">k</div>
+            <div class="description">Previous comment</div>
+        </div>
+        <div class="row">
+            <div class="key">Shift + j</div>
+            <div class="description">Next same-level comment</div>
+            <div class="key">Shift + k</div>
+            <div class="description">Previous same-level comment</div>
+        </div>
+        <div class="row">
+            <div class="key">n</div>
+            <div class="description">Next root-level comment</div>
+            <div class="key">m</div>
+            <div class="description">Previous root-level comment</div>
+        </div>
+        <div class="row">
+            <div class="key">Shift + n</div>
+            <div class="description">Up a comment level forward</div>
+            <div class="key">Shift + m</div>
+            <div class="description">Up a comment level backward</div>
+        </div>
+        <div class="row">
+            <div class="key">l</div>
+            <div class="description">Hide or show the current commend and children</div>
+        </div>
+        <div class="row">
+            <div class="key">h</div>
+            <div class="description">Highlight the username of the current focused comment</div>
+        </div>
+        <div class="row">
+            <div class="key">c</div>
+            <div class="description">Highlight the current selection text</div>
+        </div>
+        <div class="row">
+            <div class="description">
+                <div class="key">f</div>
+                Add a friend (permanently highlight a username with a note that persists on all pages) of the current
+                focused comment
+            </div>
+        </div>
+    </div>
+</html>

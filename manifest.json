@@ -8,6 +8,14 @@
             "js": ["build/main.bundle.js"]
         }
     ],
-    "icons": { "16": "icons/letter-h-icon-16.png", "48": "icons/letter-h-icon-48.png", "128": "icons/letter-h-icon-128.png" },
+    "action": {
+        "default_popup": "res/keyboard-shortcut-overlay.html",
+        "default_title": "HN Keyboard Nav - Keyboard Shortcuts"
+    },
+    "icons": {
+        "16": "icons/letter-h-icon-16.png",
+        "48": "icons/letter-h-icon-48.png",
+        "128": "icons/letter-h-icon-128.png"
+    },
     "manifest_version": 3
 }
