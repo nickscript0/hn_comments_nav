@@ -25,7 +25,7 @@
         "eslint": "^8.8.0",
         "ts-loader": "^8.0.4",
         "typescript": "^4.1.2",
-        "webpack": "^5.53.0",
+        "webpack": "^5.76.0",
         "webpack-cli": "^4.8.0",
         "webpack-notifier": "github:nickscript0/webpack-notifier#7de75b4463fae7234a6c9ef7df5f01e9777ab59c"
     }
