@@ -47,6 +47,39 @@ export class BrowserNav implements Nav {
         this.highlightedParent = null;
     }
 
+    public get allComments(): HTMLCollectionOf<Element> {
+        return this.all_comments;
+    }
+
+    private setPosition(newPosition: number) {
+        if (newPosition < 0 || newPosition >= this.all_comments.length) {
+            console.error(`New position ${newPosition} is out of bounds.`);
+            return;
+        }
+
+        if (this.position !== null) {
+            _unHighlight(this.all_comments[this.position]);
+        }
+
+        this.position = newPosition;
+        _highlight(this.all_comments[this.position]);
+
+        // Ensure the new element is visible
+        // this.currentElement?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        // this._highlightThreadParent(); // Optional: decide if this is needed
+        console.log(`Position set to ${this.position}`);
+    }
+
+    public navigateToCommentById(commentId: string) {
+        for (let i = 0; i < this.all_comments.length; i++) {
+            if (this.all_comments[i].id === commentId) {
+                this.setPosition(i);
+                return;
+            }
+        }
+        console.warn(`Comment with ID ${commentId} not found.`);
+    }
+
     public next() {
         this.position = _nextPosition(this.position, 1, p => p < this.all_comments.length, this.all_comments);
         this._highlightThreadParent();
@@ -340,3 +373,37 @@ function _highlightAndOverlayParent(originalParent: Element, currentElement: HTM
 //     const difference = new Set(Array.from(a).filter(x => !b.has(x)));
 //     return difference.size === 0;
 // }
+
+export function addNavButtonsToComments(nav: BrowserNav) {
+    const comments = nav.allComments;
+    for (let i = 0; i < comments.length; i++) {
+        const comment = comments[i] as HTMLElement;
+        const navsSpan = comment.querySelector('span.navs');
+
+        if (navsSpan) {
+            const navButton = document.createElement('a');
+            navButton.href = 'javascript:void(0);'; // Or #
+            navButton.textContent = 'nav';
+            navButton.style.color = '#20a01a73';
+            navButton.style.fontWeight = 'bold';
+            navButton.style.marginLeft = '3px'; // A little space from the previous element
+            navButton.classList.add('hn-keynav-nav-button');
+            navButton.title = 'Set as current navigation target';
+
+            navButton.addEventListener('click', (e) => {
+                e.preventDefault();
+                const commentTr = (e.target as HTMLElement).closest('tr.athing.comtr');
+                if (commentTr && commentTr.id) {
+                    nav.navigateToCommentById(commentTr.id);
+                }
+            });
+
+            // Add a separator if there are existing elements in navsSpan
+            if (navsSpan.childNodes.length > 0 && navsSpan.lastChild?.nodeName !== '|') {
+                 const separator = document.createTextNode(' | ');
+                 navsSpan.appendChild(separator);
+            }
+            navsSpan.appendChild(navButton);
+        }
+    }
+}

@@ -2,7 +2,7 @@
  * HN Keynav Chrome Extension
  */
 
-import { BrowserNav, Nav } from './browser_nav';
+import { BrowserNav, Nav, addNavButtonsToComments } from './browser_nav';
 import { highlight_op, TextHighlight, Highlight } from './highlight';
 import { Friends } from './friends';
 
@@ -16,6 +16,8 @@ function main() {
     document.addEventListener('keyup', handle_keyup(nav), false);
     highlight_op();
     friends.highlightFriends();
+
+    addNavButtonsToComments(nav);
 }
 
 async function handleOtherKeypress(e: KeyboardEvent) {
