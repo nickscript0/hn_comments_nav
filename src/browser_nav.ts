@@ -1,35 +1,31 @@
-import { getAllComments, getIndent, getCommentAuthor, tagUsersThroughoutPage } from './hn_dom';
+import { getAllComments, getCommentAuthor, getIndent, tagUsersThroughoutPage } from './hn_dom';
 
 // No longer need this, can remove
 // declare function toggle(event: any, id: string);
 
 export interface Nav {
-    next();
-    previous();
-    nextRoot();
-    previousRoot();
-    nextSameLevel();
-    previousSameLevel();
-    nextParent();
-    previousParent();
-    showParent();
-    hideParent();
-    toggleCollapseThread();
+    next(): void;
+    previous(): void;
+    nextRoot(): void;
+    previousRoot(): void;
+    nextSameLevel(): void;
+    previousSameLevel(): void;
+    nextParent(): void;
+    previousParent(): void;
+    showParent(): void;
+    hideParent(): void;
+    toggleCollapseThread(): void;
     readonly currentElement: HTMLElement | null;
 }
 
-interface ConditionFunc {
-    (i: number): boolean;
-}
+type ConditionFunc = (i: number) => boolean;
 
-interface FinderFunc {
-    (
-        current_position: number,
-        incrementor: number,
-        boundary_func: ConditionFunc,
-        all_comments: HTMLCollectionOf<Element>
-    ): number;
-}
+type FinderFunc = (
+    current_position: number,
+    incrementor: number,
+    boundary_func: ConditionFunc,
+    all_comments: HTMLCollectionOf<Element>,
+) => number;
 
 /**
  * Nav
@@ -41,7 +37,7 @@ export class BrowserNav implements Nav {
 
     constructor() {
         this.all_comments = getAllComments();
-        console.log('all_comments size ' + this.all_comments.length);
+        console.log(`all_comments size ${this.all_comments.length}`);
 
         this.position = null;
         this.highlightedParent = null;
@@ -130,7 +126,7 @@ export class BrowserNav implements Nav {
                 this.position + _findImmediateParent(this.position, -1, i => i >= 0, this.all_comments);
             this.highlightedParent = _highlightAndOverlayParent(
                 this.all_comments[immediateParentI],
-                this.currentElement
+                this.currentElement,
             );
         }
     }
@@ -156,20 +152,6 @@ export class BrowserNav implements Nav {
 
     public get currentElement(): HTMLElement | null {
         return this.position !== null ? <HTMLElement>this.all_comments[this.position] : null;
-    }
-
-    private get threadParent(): HTMLElement | null {
-        const current = this.currentElement;
-        if (current && this.position !== null) {
-            // If currently root
-            if (_nestLevel(current) === 0) {
-                return current;
-            } else {
-                const previousRootId = _findNextRoot(this.position, -1, i => i >= 0, this.all_comments);
-                return this.all_comments[this.position + previousRootId] as HTMLElement;
-            }
-        }
-        return null;
     }
 
     private _advance(increment: number, boundary_func: ConditionFunc, finder_func: FinderFunc) {
@@ -199,7 +181,7 @@ function _nextPosition(
     current_position: number | null,
     incrementor: number,
     boundary_func: ConditionFunc,
-    all_comments: HTMLCollectionOf<Element>
+    all_comments: HTMLCollectionOf<Element>,
 ): number {
     let new_position: number;
     // Case 1: no comment is highlighted, go to nearest
@@ -225,9 +207,9 @@ function _findNextRoot(
     current_position: number,
     incrementor: number,
     boundary_func: ConditionFunc,
-    all_comments: HTMLCollectionOf<Element>
+    all_comments: HTMLCollectionOf<Element>,
 ): number {
-    const is_child = i => getIndent(all_comments[i]) > 0;
+    const is_child = (i: number) => getIndent(all_comments[i]) > 0;
     return _findNextComment(current_position, incrementor, boundary_func, is_child, all_comments);
 }
 
@@ -235,10 +217,10 @@ function _findImmediateParent(
     current_position: number,
     incrementor: number,
     boundary_func: ConditionFunc,
-    all_comments: HTMLCollectionOf<Element>
+    all_comments: HTMLCollectionOf<Element>,
 ): number {
     const currentNestLevel = _nestLevel(all_comments[current_position]);
-    const isImmediateParent = i => _nestLevel(all_comments[i]) !== currentNestLevel - 1;
+    const isImmediateParent = (i: number) => _nestLevel(all_comments[i]) !== currentNestLevel - 1;
 
     return _findNextComment(current_position, incrementor, boundary_func, isImmediateParent, all_comments);
 }
@@ -270,10 +252,10 @@ function _findClosestParent(
     current_position: number,
     incrementor: number,
     boundary_func: ConditionFunc,
-    all_comments: HTMLCollectionOf<Element>
+    all_comments: HTMLCollectionOf<Element>,
 ): number {
     const currentNestLevel = _nestLevel(all_comments[current_position]);
-    const equalOrHigherNestLevel = i => currentNestLevel <= _nestLevel(all_comments[i]);
+    const equalOrHigherNestLevel = (i: number) => currentNestLevel <= _nestLevel(all_comments[i]);
 
     return _findNextComment(current_position, incrementor, boundary_func, equalOrHigherNestLevel, all_comments);
 }
@@ -282,16 +264,16 @@ function _findNextAtLevel(
     current_position: number,
     incrementor: number,
     boundary_func: ConditionFunc,
-    all_comments: HTMLCollectionOf<Element>
+    all_comments: HTMLCollectionOf<Element>,
 ): number {
     const nest_level = _nestLevel(all_comments[current_position]);
-    const not_at_level = i => nest_level !== _nestLevel(all_comments[i]);
+    const not_at_level = (i: number) => nest_level !== _nestLevel(all_comments[i]);
 
     // Check it belongs to same parents
-    function sameParentOrDescendant(i) {
+    function sameParentOrDescendant(i: number) {
         // Return false immediately if we're out of bounds
         if (!boundary_func(i)) return false;
-        function getParentId(i) {
+        function getParentId(i: number) {
             if (i < 0) return false;
             const currentIndent = getIndent(all_comments[i]);
             if (currentIndent === null) return null;
@@ -301,7 +283,7 @@ function _findNextAtLevel(
             }
             return all_comments[idx].id;
         }
-        const sameParent = getParentId(current_position) == getParentId(i);
+        const sameParent = getParentId(current_position) === getParentId(i);
         const isDescendant = getIndent(all_comments[i]) > getIndent(all_comments[current_position]);
         return sameParent || isDescendant;
     }
@@ -316,7 +298,7 @@ function _findNextComment(
     incrementor: number,
     boundary_func: ConditionFunc,
     condition_func: ConditionFunc,
-    _all_comments: HTMLCollectionOf<Element>
+    _all_comments: HTMLCollectionOf<Element>,
 ): number {
     let i: number = current_position + incrementor;
 
@@ -361,7 +343,7 @@ function _highlightAndOverlayParent(originalParent: Element, currentElement: HTM
     overlayNode.style.backgroundColor = 'MistyRose';
     overlayNode.style.top = currentElement.getBoundingClientRect().bottom.toString();
     overlayNode.style.left = currentElement.getBoundingClientRect().left.toString();
-    currentElement.parentElement && currentElement.parentElement.insertBefore(overlayNode, currentElement.nextSibling);
+    currentElement.parentElement?.insertBefore(overlayNode, currentElement.nextSibling);
     return overlayNode;
 }
 
@@ -391,18 +373,18 @@ export function addNavButtonsToComments(nav: BrowserNav) {
             navButton.classList.add('hn-keynav-nav-button');
             navButton.title = 'Set as current navigation target';
 
-            navButton.addEventListener('click', (e) => {
+            navButton.addEventListener('click', e => {
                 e.preventDefault();
                 const commentTr = (e.target as HTMLElement).closest('tr.athing.comtr');
-                if (commentTr && commentTr.id) {
+                if (commentTr?.id) {
                     nav.navigateToCommentById(commentTr.id);
                 }
             });
 
             // Add a separator if there are existing elements in navsSpan
             if (navsSpan.childNodes.length > 0 && navsSpan.lastChild?.nodeName !== '|') {
-                 const separator = document.createTextNode(' | ');
-                 navsSpan.appendChild(separator);
+                const separator = document.createTextNode(' | ');
+                navsSpan.appendChild(separator);
             }
             navsSpan.appendChild(navButton);
         }

@@ -2,9 +2,9 @@
  * HN Keynav Chrome Extension
  */
 
-import { BrowserNav, Nav, addNavButtonsToComments } from './browser_nav';
-import { highlight_op, TextHighlight, Highlight } from './highlight';
+import { addNavButtonsToComments, BrowserNav, type Nav } from './browser_nav';
 import { Friends } from './friends';
+import { type Highlight, highlight_op, TextHighlight } from './highlight';
 
 function main() {
     const nav = new BrowserNav();
@@ -83,7 +83,7 @@ function handle_keyup(nav: Nav) {
     return _keyInvoker(key_map);
 }
 
-function _keyInvoker(key_map) {
+function _keyInvoker(key_map: Record<string, () => void>) {
     return (e: KeyboardEvent) => {
         const notTextArea = document?.activeElement?.tagName.toLowerCase() !== 'textarea';
         if (notTextArea && key_map[e.key]) key_map[e.key]();

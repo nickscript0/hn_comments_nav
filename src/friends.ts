@@ -1,4 +1,4 @@
-import { Nav } from './browser_nav';
+import type { Nav } from './browser_nav';
 import { getCommentAuthor, getUserLinks, getUserName } from './hn_dom';
 
 export class Friends {
@@ -18,7 +18,9 @@ export class Friends {
             element.classList.remove('friend');
         });
         this.originalStyles.clear();
-        document.querySelectorAll('.hn-keynav-friend-note').forEach(note => note.remove());
+        for (const note of document.querySelectorAll('.hn-keynav-friend-note')) {
+            note.remove();
+        }
         const existingFriendsNames = this.storage.allNames();
         getUserLinks()
             .filter(e => existingFriendsNames.includes(getUserName(e) || ''))
@@ -47,7 +49,7 @@ export class Friends {
 
             const comment = window.prompt(
                 `Enter a description for ${author} (leave empty to remove)`,
-                this.storage.getComment(author) || ''
+                this.storage.getComment(author) || '',
             );
             if (comment === null) return;
             this.storage.add(author, comment);

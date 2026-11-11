@@ -1,22 +1,50 @@
 # hn_comments_nav
 
 ## Build
+
+Use Node.js 26 LTS; the exact development and CI version is pinned in `.nvmrc`.
+If you use nvm, run `nvm install` and `nvm use` in this directory first.
+
 ```bash
+npm ci
 npm run build
 ```
 
+The build runs strict TypeScript checking, then esbuild produces a minified ES2022
+content script and source map at `build/main.bundle.js` and `build/main.bundle.js.map`.
+
 Reload the unpacked extension in `chrome://extensions` after building, then refresh open HN tabs.
 
-Run the shortcut regression tests (includes a production build):
+## Development
+
 ```bash
-npm test
+npm run watch      # Rebuild the content script on source changes
+npm run typecheck  # Check types without emitting JavaScript
+npm run lint       # Run Biome lint checks
+npm run format     # Format TypeScript, JavaScript, and project JSON with Biome
+npm test           # Build and run the shortcut regression tests
+npm run check      # Check lint and formatting, type-check, build, and test (also runs in CI)
+```
+
+Watch mode builds an unminified bundle and source map. Reload the extension and refresh
+HN after each rebuild. To check types continuously in another terminal, run
+`npm run typecheck -- --watch`.
+
+The toolchain uses esbuild for bundling, TypeScript for type checking, Biome for linting
+and formatting, and jsdom with Node's built-in test runner for DOM regression tests.
+The manifest continues to load `build/main.bundle.js`.
+
+To package a production build for submission:
+
+```bash
+npm run build
+./zip-for-submission.sh
 ```
 
 ## Notes
 - Icons from https://iconarchive.com/show/keyboard-keys-icons-by-chromatix/letter-h-icon.html
 
 ## TODOs
-- [ ] Feature: switch Webpack to Parcel.js and use the [Parcel.js Web Extension](https://parceljs.org/recipes/web-extension/) when this [issue](https://github.com/parcel-bundler/parcel/issues/6079) is closed and corresponding [PR gets merged to support Manifest V3](https://github.com/parcel-bundler/parcel/pull/7050)
 - [ ] :closed_book: Bug: multi-keyword highlight only processes one match in an element (should process all matches)
 - [ ] :green_book: Add stats for the current comment (number of children, others?)
 - [ ] :green_book: Add stats for the article as a whole: how many 'friends' posted in it, summarize friends posts, sort by highest children threads, ...

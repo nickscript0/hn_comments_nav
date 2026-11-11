@@ -22,7 +22,7 @@ export function getIndent(comment: Element): number {
     if (indent === undefined || indent === null) {
         throw Error(`getIndent called with invalid argument ${JSON.stringify(comment)}`);
     }
-    return parseInt(indent);
+    return parseInt(indent, 10);
 }
 
 // HN no longer adds the `hnuser` class to profile links. The profile URL is
@@ -30,8 +30,8 @@ export function getIndent(comment: Element): number {
 export function getUserLinks(root: ParentNode = document): HTMLAnchorElement[] {
     return Array.from(
         root.querySelectorAll<HTMLAnchorElement>(
-            'a[href^="user?id="], a[href^="/user?id="], a[href^="https://news.ycombinator.com/user?id="]'
-        )
+            'a[href^="user?id="], a[href^="/user?id="], a[href^="https://news.ycombinator.com/user?id="]',
+        ),
     );
 }
 
@@ -39,7 +39,7 @@ export function getUserName(link: HTMLAnchorElement): string | null {
     return new URL(link.href, document.baseURI).searchParams.get('id');
 }
 
-export function getCommentAuthor(comment: HTMLElement): string | null {
+export function getCommentAuthor(comment: Element): string | null {
     const header = comment.querySelector('.comhead');
     const link = header && getUserLinks(header)[0];
     return link ? getUserName(link) : null;
@@ -56,7 +56,7 @@ export function hightlightUserThroughoutPage({
 }) {
     getUserLinks()
         .filter(e => getUserName(e) === userName)
-        .map(element => {
+        .forEach(element => {
             const html_element = <HTMLElement>element;
             if (color) html_element.style.color = color;
             if (fontWeight) html_element.style.fontWeight = fontWeight;
@@ -88,7 +88,9 @@ export function hightlightUserThroughoutPage({
 
 export function tagUsersThroughoutPage({ userNames, color, fontWeight, addTag }: TUTPArgs) {
     // Remove pre-existing matching class so we don't duplicate
-    document.querySelectorAll(`.${addTag.class}`).forEach(e => e.remove());
+    for (const tag of document.querySelectorAll(`.${addTag.class}`)) {
+        tag.remove();
+    }
 
     for (const element of getUserLinks()) {
         const name = getUserName(element);
@@ -116,7 +118,7 @@ function _insertTag(
     addTag: {
         style: Partial<CSSStyleDeclaration>;
         class: string;
-    }
+    },
 ) {
     const html_element = element as HTMLElement;
     const userName = getUserName(element) as string;
@@ -126,9 +128,7 @@ function _insertTag(
         const tag = document.createElement('span');
         tag.className = addTag.class;
         tag.textContent = `GP${userNames.indexOf(userName)}`;
-        for (const [key, value] of Object.entries(addTag.style)) {
-            tag.style[key] = value;
-        }
+        Object.assign(tag.style, addTag.style);
         // html_element.appendChild(tag);
         html_element.insertAdjacentElement('afterend', tag);
     }

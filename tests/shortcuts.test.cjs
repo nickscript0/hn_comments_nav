@@ -29,7 +29,9 @@ function openPage(options = {}, friends = {}) {
     });
     const { window } = dom;
     window.console.log = () => {};
-    window.HTMLElement.prototype.scrollIntoView = function () { window.lastScrolled = this.id; };
+    window.HTMLElement.prototype.scrollIntoView = function () {
+        window.lastScrolled = this.id;
+    };
     window.localStorage.setItem('hn_friends', JSON.stringify(friends));
     const errors = [];
     window.addEventListener('error', event => errors.push(event.error));
@@ -40,9 +42,16 @@ function openPage(options = {}, friends = {}) {
         window,
         document: window.document,
         errors,
-        key(key) { window.document.dispatchEvent(new window.KeyboardEvent('keypress', { key, bubbles: true })); },
-        nav(id) { window.document.querySelector(`[id="${id}"] .hn-keynav-nav-button`).click(); },
-        close() { assert.deepEqual(errors, []); window.close(); },
+        key(key) {
+            window.document.dispatchEvent(new window.KeyboardEvent('keypress', { key, bubbles: true }));
+        },
+        nav(id) {
+            window.document.querySelector(`[id="${id}"] .hn-keynav-nav-button`).click();
+        },
+        close() {
+            assert.deepEqual(errors, []);
+            window.close();
+        },
     };
 }
 
@@ -85,7 +94,10 @@ test('f adds, edits, cancels and removes notes immediately while preserving prof
     page.nav('101');
     let answer = 'Helpful author';
     const prompts = [];
-    window.prompt = (message, value) => { prompts.push({ message, value }); return answer; };
+    window.prompt = (message, value) => {
+        prompts.push({ message, value });
+        return answer;
+    };
     page.key('f');
     assert.deepEqual(JSON.parse(window.localStorage.getItem('hn_friends')), { alice: 'Helpful author' });
     assert.equal(document.querySelectorAll('.hn-keynav-friend-note').length, 3);

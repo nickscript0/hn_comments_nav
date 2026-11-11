@@ -2,7 +2,7 @@
  * Highlight the original poster's name throughout the page
  */
 
-import { Nav } from './browser_nav';
+import type { Nav } from './browser_nav';
 import { getCommentAuthor, getUserLinks, getUserName, hightlightUserThroughoutPage } from './hn_dom';
 
 export function highlight_op() {
@@ -16,8 +16,8 @@ export function highlight_op() {
 }
 
 export interface Highlight {
-    add();
-    clear();
+    add(): void;
+    clear(): void;
 }
 
 export class TextHighlight implements Highlight {
@@ -69,15 +69,15 @@ export class TextHighlight implements Highlight {
  * Given a textNode split its text into 3 span nodes: (pre_node, highlight_node, post_node), where
  * highlight_node is 'word' highlighted with a style and the other nodes contain the surrounding text
  * @param {string} word the word to highlight
- * @param {Element} original_node the original textNode to split into 3
+ * @param {Node} original_node the original textNode to split into 3
  * @param {string} highlight_colour the colour to highlight
  * @returns {boolean} true if match found and word highlighted, false otherwise
  */
 function createHighlightNodeTrio(
     word: string,
-    original_node: Element,
+    original_node: Node,
     highlight_colour: string,
-    ignoreCase: boolean
+    ignoreCase: boolean,
 ): boolean {
     if (original_node.textContent === null) return false;
     if (ignoreCase) word = word.toLowerCase();
@@ -110,9 +110,9 @@ function createHighlightNodeTrio(
 /**
  * Find all the textNodes that have 'word' in them (ignore case and whitespace only words)
  * @param {string} word a string to match
- * @returns {Array<Element>} the list of matched nodes
+ * @returns {Array<Node>} the list of matched nodes
  */
-function findNodesWithWord(word: string, ignoreCase: boolean): Array<Element> {
+function findNodesWithWord(word: string, ignoreCase: boolean): Array<Node> {
     if (word === '') return [];
     if (ignoreCase) word = word.toLowerCase();
 
@@ -124,9 +124,8 @@ function findNodesWithWord(word: string, ignoreCase: boolean): Array<Element> {
     };
     const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, filter_by_word);
 
-    let n;
-    const matched_nodes: Array<Element> = [];
-    while ((n = walker.nextNode())) {
+    const matched_nodes: Array<Node> = [];
+    for (let n = walker.nextNode(); n !== null; n = walker.nextNode()) {
         matched_nodes.push(n);
     }
 
