@@ -1,8 +1,10 @@
 import { Nav } from './browser_nav';
+import { getCommentAuthor, getUserLinks, getUserName } from './hn_dom';
 
 export class Friends {
     private storage: FriendStorage;
     private browserNav: Nav;
+    private originalStyles = new Map<HTMLAnchorElement, { color: string; fontWeight: string }>();
 
     constructor(browserNav: Nav) {
         this.storage = new FriendStorage();
@@ -10,28 +12,46 @@ export class Friends {
     }
 
     highlightFriends() {
+        this.originalStyles.forEach((style, element) => {
+            element.style.color = style.color;
+            element.style.fontWeight = style.fontWeight;
+            element.classList.remove('friend');
+        });
+        this.originalStyles.clear();
+        document.querySelectorAll('.hn-keynav-friend-note').forEach(note => note.remove());
         const existingFriendsNames = this.storage.allNames();
-        Array.from(document.getElementsByClassName('hnuser'))
-            .filter(e => existingFriendsNames.includes(e.textContent || ''))
+        getUserLinks()
+            .filter(e => existingFriendsNames.includes(getUserName(e) || ''))
             .forEach(element => {
-                const name = element.textContent;
+                const name = getUserName(element);
                 if (name) {
-                    const html_element = <HTMLElement>element;
-                    html_element.style.color = '#f44336';
-                    html_element.style.fontWeight = 'bold';
-                    html_element.className = 'hnuser friend';
-                    html_element.textContent = this.storage.getNameCommentString(name);
+                    this.originalStyles.set(element, {
+                        color: element.style.color,
+                        fontWeight: element.style.fontWeight,
+                    });
+                    element.style.color = '#f44336';
+                    element.style.fontWeight = 'bold';
+                    element.classList.add('friend');
+                    const note = document.createElement('span');
+                    note.className = 'hn-keynav-friend-note';
+                    note.textContent = ` [${this.storage.getComment(name)}]`;
+                    element.insertAdjacentElement('afterend', note);
                 }
             });
     }
 
     addCurrentElement() {
         if (this.browserNav.currentElement) {
-            const hnuser = this.browserNav.currentElement.getElementsByClassName('hnuser');
-            const author = hnuser[0].textContent;
+            const author = getCommentAuthor(this.browserNav.currentElement);
+            if (!author) return;
 
-            const comment = window.prompt(`Enter a description for ${author}`);
+            const comment = window.prompt(
+                `Enter a description for ${author} (leave empty to remove)`,
+                this.storage.getComment(author) || ''
+            );
+            if (comment === null) return;
             this.storage.add(author, comment);
+            this.highlightFriends();
         }
     }
 }
@@ -49,21 +69,15 @@ class FriendStorage {
         return Object.keys(this.friendsObj);
     }
 
-    add(value, comment) {
-        const name = this.nameFromValue(value);
+    add(name: string, comment: string) {
         // if the comment is empty, delete the friend
-        this.friendsObj[name] = comment || undefined;
+        if (comment) this.friendsObj[name] = comment;
+        else delete this.friendsObj[name];
         this.write();
     }
 
-    getNameCommentString(name: string) {
-        const comment = this.friendsObj[name];
-        return `${name} [${comment}]`;
-    }
-
-    // This will return the name in both cases if it is a comment name string or just a name
-    private nameFromValue(value: string) {
-        return value.split(' [')[0];
+    getComment(name: string) {
+        return this.friendsObj[name];
     }
 
     private write() {

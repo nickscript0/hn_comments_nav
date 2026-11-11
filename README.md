@@ -5,6 +5,13 @@
 npm run build
 ```
 
+Reload the unpacked extension in `chrome://extensions` after building, then refresh open HN tabs.
+
+Run the shortcut regression tests (includes a production build):
+```bash
+npm test
+```
+
 ## Notes
 - Icons from https://iconarchive.com/show/keyboard-keys-icons-by-chromatix/letter-h-icon.html
 
@@ -35,5 +42,7 @@ Features and Keyboard Shortcuts (available on HN Comments Pages):
 - Hide or show the current comment and children (l)
 - Highlight the username of the current focused comment (h)
 - Highlight the current selection text (h)
+- Click the `nav` link in a comment header to make it the current keyboard navigation target
 - Add a friend (permanently highlight a username with a note that persists on all pages) of the current focused comment (f)
+- Press `f` again to edit the friend note; submit an empty note to remove the friend, or Cancel to keep it
 - Copy the post title and url in adoc format (Ctrl+Shift+X)

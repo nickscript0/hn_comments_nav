@@ -3,12 +3,13 @@
  */
 
 import { Nav } from './browser_nav';
-import { getCommentAuthor, hightlightUserThroughoutPage } from './hn_dom';
+import { getCommentAuthor, getUserLinks, getUserName, hightlightUserThroughoutPage } from './hn_dom';
 
 export function highlight_op() {
     const subtext = document.getElementsByClassName('subtext');
     if (subtext.length === 0) return;
-    const op_name = subtext[0].getElementsByClassName('hnuser')[0].textContent;
+    const op_link = getUserLinks(subtext[0])[0];
+    const op_name = op_link ? getUserName(op_link) : null;
     if (op_name) {
         hightlightUserThroughoutPage({ userName: op_name, color: '#42c135', fontWeight: 'bold' });
     }

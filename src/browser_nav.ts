@@ -63,6 +63,7 @@ export class BrowserNav implements Nav {
 
         this.position = newPosition;
         _highlight(this.all_comments[this.position]);
+        this._highlightThreadParent();
 
         // Ensure the new element is visible
         // this.currentElement?.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -378,7 +379,7 @@ export function addNavButtonsToComments(nav: BrowserNav) {
     const comments = nav.allComments;
     for (let i = 0; i < comments.length; i++) {
         const comment = comments[i] as HTMLElement;
-        const navsSpan = comment.querySelector('span.navs');
+        const navsSpan = comment.querySelector('span.navs') || comment.querySelector('.comhead');
 
         if (navsSpan) {
             const navButton = document.createElement('a');

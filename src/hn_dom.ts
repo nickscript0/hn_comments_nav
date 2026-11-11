@@ -25,16 +25,24 @@ export function getIndent(comment: Element): number {
     return parseInt(indent);
 }
 
+// HN no longer adds the `hnuser` class to profile links. The profile URL is
+// also a stable identity when an extension adds decorations to the link text.
+export function getUserLinks(root: ParentNode = document): HTMLAnchorElement[] {
+    return Array.from(
+        root.querySelectorAll<HTMLAnchorElement>(
+            'a[href^="user?id="], a[href^="/user?id="], a[href^="https://news.ycombinator.com/user?id="]'
+        )
+    );
+}
+
+export function getUserName(link: HTMLAnchorElement): string | null {
+    return new URL(link.href, document.baseURI).searchParams.get('id');
+}
+
 export function getCommentAuthor(comment: HTMLElement): string | null {
-    const hnuser = comment.getElementsByClassName('hnuser');
-    if (hnuser.length > 0) {
-        const author = hnuser[0].textContent;
-        if (author !== null) {
-            // Could be cleaner but typescript wasn't allowing the type guard for the more concise version
-            return author.trim(); //.toLowerCase();
-        }
-    }
-    return null;
+    const header = comment.querySelector('.comhead');
+    const link = header && getUserLinks(header)[0];
+    return link ? getUserName(link) : null;
 }
 
 export function hightlightUserThroughoutPage({
@@ -46,8 +54,8 @@ export function hightlightUserThroughoutPage({
     color?: string;
     fontWeight?: string;
 }) {
-    Array.from(document.getElementsByClassName('hnuser'))
-        .filter(e => e.textContent === userName)
+    getUserLinks()
+        .filter(e => getUserName(e) === userName)
         .map(element => {
             const html_element = <HTMLElement>element;
             if (color) html_element.style.color = color;
@@ -82,8 +90,9 @@ export function tagUsersThroughoutPage({ userNames, color, fontWeight, addTag }:
     // Remove pre-existing matching class so we don't duplicate
     document.querySelectorAll(`.${addTag.class}`).forEach(e => e.remove());
 
-    for (const element of Array.from(document.querySelectorAll('.hnuser'))) {
-        if (element.textContent && userNames.includes(element.textContent)) {
+    for (const element of getUserLinks()) {
+        const name = getUserName(element);
+        if (name && userNames.includes(name)) {
             _insertTag(userNames, element, color, fontWeight, addTag);
         }
     }
@@ -101,7 +110,7 @@ interface TUTPArgs {
 
 function _insertTag(
     userNames: string[],
-    element: Element,
+    element: HTMLAnchorElement,
     color: string | undefined,
     fontWeight: string | undefined,
     addTag: {
@@ -110,7 +119,7 @@ function _insertTag(
     }
 ) {
     const html_element = element as HTMLElement;
-    const userName = html_element.textContent as string;
+    const userName = getUserName(element) as string;
     if (color) html_element.style.color = color;
     if (fontWeight) html_element.style.fontWeight = fontWeight;
     if (addTag) {
